@@ -1,0 +1,903 @@
+#!/usr/bin/python
+# -*- coding: utf8 -*-
+"""
+@author xuruiqi(fanfank@github.com)
+@site   https://github.com/fanfank/timecat
+@date   20160106
+@desc   timecat is a command line tool for
+        saving disk I/O when you have to output
+        specific logs in between a time span.
+        It uses binary search to directly locate
+        the start position and end position, then
+        output content between the target positions.
+"""
+
+import argparse
+import copy
+import datetime
+import os
+import re
+import time
+import traceback
+import sys
+
+MAX_LINE_LENGTH = 1024 * 1024 * 128 # 128MB
+
+enable_color   = False
+enable_verbose = False
+
+scan_line_num   = 0
+binary_loop_num = 0
+
+DATETIME_FORMAT_LIST = [
+    # sequence is important
+    # tag the format with YEAR, MONTH, DAY ...
+    {
+        "desc": "e.g. 2016-01-02 20:13:14.666",
+        "regex": "(?P<YEAR>\d{4})\D(?P<MONTH>\d{2})\D(?P<DAY>\d{2})\D(?P<HOUR>\d{2})\D(?P<MINUTE>\d{2})\D(?P<SECOND>\d{2})\.(?P<MICROSECOND>\d{1,3})",
+        "direct_compare": True,
+    },
+    {
+        "desc": "e.g. 2016-01-02 20:13:14",
+        "regex": "(?P<YEAR>\d{4})\D(?P<MONTH>\d{2})\D(?P<DAY>\d{2})\D(?P<HOUR>\d{2})\D(?P<MINUTE>\d{2})\D(?P<SECOND>\d{2})",
+        "direct_compare": True,
+    },
+    {
+        "desc" : "syslog. e.g. Jan  2 20:13:14",
+        "regex": "(?P<MONTH>[a-zA-Z]{3})\D(?P<DAY>[ \d]{1}\d{1})\D(?P<HOUR>\d{2})\D(?P<MINUTE>\d{2})\D(?P<SECOND>\d{2})",
+        "direct_compare": False,
+    },
+    {
+        "desc" : "e.g. 2016/Jan/02 20:13:14.666",
+        "regex": "(?P<DAY>\d{2})\D(?P<MONTH>[a-zA-Z]{3})\D(?P<YEAR>\d{4})\D(?P<HOUR>\d{2})\D(?P<MINUTE>\d{2})\D(?P<SECOND>\d{2})\.(?P<MICROSECOND>\d{1,3})",
+        "direct_compare": False,
+    },
+    {
+        "desc" : "e.g. 02-Jan-2016 20:13:14",
+        "regex": "(?P<DAY>\d{2})\D(?P<MONTH>[a-zA-Z]{3})\D(?P<YEAR>\d{4})\D(?P<HOUR>\d{2})\D(?P<MINUTE>\d{2})\D(?P<SECOND>\d{2})",
+        "direct_compare": False,
+    },
+    {
+        "desc" : "datetime without seperator. e.g. 20160102201314",
+        "regex": "\d{14}",
+        "direct_compare": True,
+    },
+    {
+        "desc" : "timestamp in seconds",
+        "regex": "\d{13}",
+        "direct_compare": True,
+    },
+    {
+        "desc" : "timestamp in seconds",
+        "regex": "\d{10}",
+        "direct_compare": True,
+    },
+    {
+        "desc" : "only hour, minute and seconds",
+        "regex": "(?P<HOUR>\d{2})\D(?P<MINUTE>\d{2})\D(?P<SECOND>\d{2})",
+        "direct_compare": True,
+    },
+    {
+        "desc" : "only hour and minutes",
+        "regex": "(?P<HOUR>\d{2})\D(?P<MINUTE>\d{2})",
+        "direct_compare": True,
+    },
+]
+
+MONTH_DICT = {
+    "Jan" : 1,  "Feb" : 2, "Mar" : 3, "Apr" : 4, "May" : 5,
+    "Jun" : 6,  "Jul" : 7, "Aug" : 8, "Sep" : 9, "Oct" : 10,
+    "Nov" : 11, "Dec" : 12,
+    "01"  : 1,  "02"  : 2, "03"  : 3, "04"  : 4, "05"  : 5,
+    "06"  : 6,  "07"  : 7, "08"  : 8, "09"  : 9, "10"  : 10,
+    "11"  : 11, "12"  : 12,
+    "1"   : 1,  "2"   : 2, "3"   : 3, "4"   : 4, "5"   : 5,
+    "6"   : 6,  "7"   : 7, "8"   : 8, "9"   : 9,
+    " 1"  : 1,  " 2"  : 2, " 3"  : 3, " 4"  : 4, " 5"  : 5,
+    " 6"  : 6,  " 7"  : 7, " 8"  : 8, " 9"  : 9,
+}
+
+CMP_OP_DICT = {
+    ">" : lambda x, y: x > y,
+    "<" : lambda x, y: x < y,
+    "=" : lambda x, y: x == y,
+    "==": lambda x, y: x == y,
+    ">=": lambda x, y: x >= y,
+    "<=": lambda x, y: x <= y,
+    "!=": lambda x, y: x != y,
+}
+
+def color(content, cl = "green"):
+    if not enable_color:
+        return content
+    if cl == "green":
+        return "\x1B[0;32;40m{}\x1B[0m".format(content)
+    elif cl == "red":
+        return "\x1B[0;31;40m{}\x1B[0m".format(content)
+    else:
+        return content
+
+def init_parser(target_parser):
+    target_parser.add_argument(
+            "-s", "--start-datetime", dest = "start",
+            required = True,
+            help = "Which datetime to start(includsive). " \
+                "e.g. " \
+                "\"-s '2016-01-02 20:13:14'\", " \
+                "\"-s '2016/01/02 20:13:14'\", " \
+                "\"-s '2016-01-02T12:13:14'\", " \
+                "\"-s '2016-01-02T12:13:14.000'\", " \
+                "\"-s '02/Jan/2016:20:13:14'\", " \
+                "\"-s '02-Jan-2016 20:13:14'\", " \
+                "\"-s '02 Jan 2016 20:13:14'\", " \
+                "\"-s 'Jan  2 20:13:14'\", " \
+                "\"-s '20160102201315'\", " \
+                "\"-s '1451736794'\", " \
+                "\"-s '20:13'\", etc. We will exhaust " \
+                "our effort to cover regular datetime formats.")
+    target_parser.add_argument(
+            "-e", "--end-datetime", dest = "end",
+            default = None,
+            help = "Stop after reaching this datetime(excludsive). " \
+                "Same format as \"-s\". If not set, means output " \
+                "till the end of file.")
+    target_parser.add_argument(
+            "-d", "--date", dest = "date",
+            default = None,
+            help = "This is an optional argument. With \"-d\", the " \
+                "following two statements are essentially the same: " \
+                "\"timecat -s '2016-01-02 20:13:14' -e '2016-01-02 20:14:13' ...\" " \
+                "and \"timecat -d '2016-01-02' -s '20:13:14' -e '20:14:13' ...\"." )
+    target_parser.add_argument(
+            "-r", "--regex-format", dest = "regex_format",
+            default = None,
+            help = "If timecat failes to detect datetime format in " \
+                "your log file, you can specify the regex pattern " \
+                "that can find your datetime within each log line. " \
+                "e.g. I have format \"2016:01:01-20-13-14\", and " \
+                "timecat does not recognize this datetime format, " \
+                "then I can specify " \
+                "\"-r '\d{4}:\d{2}:\d{2}-\d{2}-\d{2}-\d{2}'\".")
+    target_parser.add_argument(
+            "-v", "--verbose", dest = "enable_verbose",
+            action = "store_true",
+            default = False,
+            help = "print additional information")
+    target_parser.add_argument(
+            "--color", dest = "enable_color",
+            action = "store_true", default = False,
+            help = "Whether to enable colorized output")
+    target_parser.add_argument(
+            "file", nargs = "+",
+            help = "files to be timecat.")
+
+def dtcmp(lhs, rhs, regex_format_info, cmp_op):
+    """compare datetime
+
+    Params:
+        lhs # left hand side
+        rhs # right hand side
+        regex_format_info = {
+            "regex"  # the regular expression
+            "parser" # the compiled regular expression
+            "direct_compare"    # indicates whether lhs and
+                                # rhs can be compared directly
+        }
+        cmp_op # ">", "<", "==", ">=", "<=" or "!="
+
+    Authors: xuruiqi
+    """
+    global MONTH_DICT
+    global CMP_OP_DICT
+
+    cmpf = CMP_OP_DICT[cmp_op]
+
+    if cmp_op in ["=", "!="] or regex_format_info["direct_compare"]:
+        return cmpf(lhs, rhs)
+
+    else:
+        lhs_match = regex_format_info["parser"].search(lhs)
+        rhs_match = regex_format_info["parser"].search(rhs)
+
+        lhs_groupdict = lhs_match.groupdict()
+        rhs_groupdict = rhs_match.groupdict()
+
+        dtcomponent_list = ["YEAR", "MONTH", "DAY", "HOUR", 
+                "MINUTE", "SECOND", "MILISECOND", "MICROSECOND"]
+
+        for dtcomponent in dtcomponent_list:
+            lhs_component = lhs_groupdict.get(dtcomponent, None)
+            rhs_component = rhs_groupdict.get(dtcomponent, None)
+            if dtcomponent == "MONTH" and lhs_component:
+                lhs_component = MONTH_DICT[lhs_component]
+                rhs_component = MONTH_DICT[rhs_component]
+
+            if lhs_component != rhs_component:
+                return cmpf(lhs_component, rhs_component)
+
+        if cmp_op in [">", "<"]:
+            return False
+        else:
+            return True
+
+def get_bi_cmp_func(file_order_info, regex_format_info):
+    """return compare function(s) according to file_order_info
+    Authors: xuruiqi
+    """
+
+    def ge(lhs, rhs):
+        return dtcmp(lhs, rhs, regex_format_info, ">=")
+    def le(lhs, rhs):
+        return dtcmp(lhs, rhs, regex_format_info, "<=")
+        
+    if file_order_info["order"] == "ascending":
+        return ge
+    else:
+        return le
+
+def at_line_head(f):
+    """judge if f's reading pointer is at the head of a line
+    Authors: xuruiqi
+    """
+    if f.tell() == 0:
+        return True
+    else:
+        f.seek(f.tell() - 1)
+        return f.read(1) == "\n"
+
+def locate_current_line(f, ed, st_bound,
+        backward_step_hint = 1024 * 4):
+    """return the start position of line of ed. this triggers
+    a backward search of line, and the search postion must
+    stay in [st_bound, ed], inclusively.
+    if no corresponding line is found, then st_bound is returned
+
+    Authors: xuruiqi
+
+    TODO(xuruiqi) set a limit to the max length of a line
+    """
+    global scan_line_num
+
+    f.seek(0, os.SEEK_END)
+    eof_pos = f.tell()
+    if ed == eof_pos:
+        return ed
+
+    # old_pos means after which(inclusive) all the data has 
+    # been read and no need to read again in this function
+    old_pos = min(ed + 1, eof_pos)
+
+    backward_step = backward_step_hint
+    while old_pos != st_bound:
+        new_pos = old_pos - backward_step
+        if new_pos < st_bound:
+            new_pos = st_bound
+        f.seek(new_pos)
+
+        # collect all lines in [new_pos, old_pos)
+        lines = []
+        while f.tell() < old_pos:
+            line = f.readline(old_pos - f.tell())
+            lines.append(line)
+
+            scan_line_num += 1
+
+        # if only one line(maybe not a complete line) is read
+        # check if the first character of this "line" is really
+        # at the head of line
+        if len(lines) == 1:
+            f.seek(0 - len(lines[-1]), os.SEEK_CUR)
+            if at_line_head(f):
+                return f.tell()
+        # multi lines read. directly set the position to the
+        # head of last line
+        else:
+            f.seek(0 - len(lines[-1]), os.SEEK_CUR)
+            return f.tell()
+
+        # not done, continue to look for the head of a line
+        old_pos = new_pos
+
+    # no line found, return st_bound directly
+    f.seek(st_bound)
+    return st_bound
+
+def locate_next_line(f, st, ed_bound, forward_step = 1024 * 4):
+    """in range [st, ed_bound), find the position of the head 
+    of a line, starting from st. If no such position found,
+    ed_bound is returned
+
+    Authors: xuruiqi
+
+    TODO(xuruiqi) add a limit to the max length of a line
+    """
+    global scan_line_num
+
+    f.seek(st)
+
+    # check if st is already at a line head
+    if not at_line_head(f):
+        # read until new line character or ed_bound is reached
+        step = min(forward_step, ed_bound - f.tell())
+        while f.tell() != ed_bound and f.readline(step):
+            scan_line_num += 1
+            if at_line_head(f):
+                return f.tell()
+
+    return f.tell()
+
+def forward_match(f, st, ed, regprog, ed_inclusive = True,
+        forward_step_hint = 1024 * 4):
+    """read until regprog matches a line or excceed ed
+    if a match is found, then set f's reading pointer to 
+    the corresponding line head, else to ed
+    return the match obj, the last matched line, and the
+    position of the head of the matched line
+
+    Authors: xuruiqi
+
+    Return: match    # the matched object
+            line     # the last read line
+                        (may not be a complete line)
+            f.tell() # the head of the line
+    """
+
+    global MAX_LINE_LENGTH
+    global scan_line_num
+
+    if ed_inclusive:
+        f.seek(ed)
+        f.readline()
+        ed = f.tell()
+        scan_line_num += 1
+
+    f.seek(st)
+
+    match = None
+    line  = None
+    while f.tell() < ed:
+        scan_line_num += 1
+
+        # try to read a complete line
+        line = ""
+        while len(line) < MAX_LINE_LENGTH and f.tell() < ed and \
+                (len(line) == 0 or line[-1] != "\n"):
+            line += f.readline(
+                    min(ed - f.tell(), forward_step_hint))
+
+        if len(line) > MAX_LINE_LENGTH:
+            sys.stderr.write(
+                    color(
+                        "line too long, excceeds {} bytes\n".format(
+                            MAX_LINE_LENGTH), 
+                        cl = "red"))
+            return None, None, None
+
+        match = regprog.search(line)
+        if match:
+            f.seek(0 - len(line), os.SEEK_CUR)
+            return match, line, f.tell()
+
+    f.seek(ed)
+    return match, line, f.tell()
+
+def backward_match(f, ed, st, regprog, backward_step_hint = 1024 * 4):
+    """backward read until regprog matches a line or excceed st
+    if the matched line is found, then locate f's reading pointer
+    to the corresponding head of the line, else locate to st
+    return the matched obj, the last read line and the head
+    position of the line
+    NOTE: ed is not read
+        
+    Authors: xuruiqi
+
+    Return: match    # the matched object
+            line     # last line read(maybe not a complete line)
+            f.tell() # the head position of the line
+
+    TODO(xuruiqi) add a limit to max length of the line
+    """
+
+    global scan_line_num
+
+    f.seek(ed)
+
+    if f.tell() < st:
+        return None, None, None
+
+    match   = None
+    line    = None
+    old_pos = f.tell()
+
+    # cache backward read content in case failing to read a whole
+    # line during a loop round
+    last_buffer   = "" 
+
+    backward_step = backward_step_hint
+
+    while (not match) and (old_pos > st):
+        new_pos = old_pos - backward_step
+        if new_pos < st:
+            new_pos = st
+        f.seek(new_pos)
+
+        lines = []
+        while f.tell() < old_pos:
+            scan_line_num += 1
+            line = f.readline(old_pos - f.tell())
+            lines.append(line)
+
+        f.seek(new_pos)
+        valid_start_index = 0
+        if len(lines) == 1:
+            # when len(lines) == 1, there may be the following
+            # possibilities:
+            #   1. no newline character is read
+            #       1.1. the head of the read data is the head of
+            #           a line
+            #       1.2. the head of the read data is not the
+            #           head of a line
+            #   2. newline character is read
+            #       2.1. the head of the read data is the head of
+            #           a line
+            #       2.2. the head of the read data is not the
+            #           head of a line
+            #   we may find that 1.1 is the same as 2.1, in this
+            #   case we have to concatenate the read content and
+            #   the last_buffer, then return if the line is valid 
+            #
+            #   And we may also find that 1.2 is the same as 2.2,
+            #   concatenate the read content and the last_buffer,
+            #   then update last_buffer with the concatenated data
+
+            if at_line_head(f):
+                lines[0]    = lines[0] + last_buffer
+                last_buffer = ""
+
+            else:
+                last_buffer = lines[0] + last_buffer
+                lines = []
+
+        else:
+            # when len(lines) != 1, there may be the following
+            # possibilities:
+            #   1. lines[0] is not a complete line
+            #   2. lines[0] is a complete line
+            #   we can judge by checking if the first character
+            #   of lines[0] is at line head
+
+            lines[-1]   = lines[-1] + last_buffer
+            last_buffer = ""
+
+            if not at_line_head(f) and new_pos != st:
+                # lines[0] is not a complete line
+                # nor does lines[0][0] at position st
+                last_buffer       = lines[0]
+                valid_start_index = 1
+
+        if new_pos == st and len(last_buffer) > 0:
+            # new_pos == st means the loop will end
+            # after this round, so we have to handle
+            # data in last_buffer
+            lines.append(last_buffer)
+
+        total_lines_length = 0
+        for line in lines:
+            total_lines_length += len(line)
+
+        # handle data from this round
+        cur_lines_length = 0
+        for index in reversed(range(valid_start_index, len(lines))):
+            line = lines[index]
+            cur_lines_length += len(line)
+            match = regprog.search(line)
+            if match:
+                # locate f's reading pointer
+                f.seek(
+                    total_lines_length \
+                    - cur_lines_length \
+                    + new_pos)
+                return match, line, f.tell()
+
+        # update old_pos
+        old_pos = new_pos
+
+    f.seek(st)
+    return None, line, f.tell()
+
+def binary_seek_pos(f, st, ed, cmp_pattern, regex_format_info, file_order_info):
+    """use binary search to find the first line that is bigger/smaller
+    than the regex_format when file is in ascending/descending order
+
+    Authors: xuruiqi
+    """
+
+    global scan_line_num
+    global binary_loop_num
+
+    # record the valid read pointer range
+    st_bound = st
+    ed_bound = ed
+
+    # locate st to the start of the next line
+    # unless st is already at the start of the current
+    # line
+    #st = locate_next_line(f, st, ed_bound)
+
+    # locate ed to the start of the current line
+    # unless ed is at eof
+    ed = locate_current_line(f, ed, st_bound)
+
+    # get compare function according to file_order_info
+    # ae => after or equal to
+    # when file is in ascending order, ae == ">="
+    # when file is in descending order, ae == "<="
+    # NOTE: actually you can comprehense ae in this way:
+    #   it indicates that the left hand side parameter
+    #   stands after or has the same value as the right
+    #   hand side parameter
+    ae = get_bi_cmp_func(file_order_info, regex_format_info)
+
+    # start doing binary search
+    #print "regex format:{}".format(regex_format_info["regex"])
+    #print "haha st={}, ed={}".format(st, ed)
+    regprog = regex_format_info["parser"]
+    while st < ed:
+        binary_loop_num += 1
+
+        mid = st + (ed - st) / 2
+
+        # read until regex_format matches the line
+        f.seek(mid)
+        match, line, res_pos = forward_match(f, mid, ed, regprog)
+        #print "st={}, ed={}, mid={}, res_pos={}\n{}\n".format(st, ed, mid, repr(res_pos), line)
+        if match:
+            # modify group(0) compare if match pattern is after
+            # or equal to the cmp_pattern
+            if ae(match.group(0), cmp_pattern):
+                #print "match={}, cmp_pattern={}".format(match.group(0), cmp_pattern)
+                if res_pos == ed:
+                    # in case this causes a dead loop, backward
+                    # search a line and compare
+                    # NOTE: if we do not handle res_pos == ed
+                    #   situation, we may encouter a dead loop,
+                    #   say only 2 lines left, the 1st line has
+                    #   10 bytes, the 2nd line has 100 bytes,
+                    #   then "mid" will always locate within the
+                    #   2nd line, if pattern in the 2nd line 
+                    #   accidently after or equal to the 
+                    #   cmp_pattern, a dead loop occurs, because
+                    #   "ed" will not change in the next round
+                    
+                    match, line, back_res_pos = backward_match(
+                            f, mid, st, regprog)
+                    if not match or back_res_pos == res_pos:
+                        # this means only one line left, and it
+                        # covers positions st and ed, just return
+                        # the res_pos
+
+                        return res_pos
+
+                    elif back_res_pos == st:
+                        # this means only two lines left, and 
+                        # they cover positions st and ed. just
+                        # compare and decide which to return
+                        
+                        if ae(match.group(0), cmp_pattern):
+                            return st
+                        else:
+                            return res_pos
+                    else:
+                        if ae(match.group(0), cmp_pattern):
+                            ed = back_res_pos
+                        else:
+                            st = back_res_pos
+                else:
+                    ed = res_pos
+            else:
+                if res_pos == st:
+                    # this means st and ed must be covered
+                    # by the same line, just return st/res_pos
+
+                    return st
+
+                st = res_pos
+                
+        else:
+            # forward search does not find any valid lines
+            # try backward search
+            match, line, res_pos = backward_match(f, mid, st, regprog)
+
+            if not match:
+                # the whole file does not contain any valid line
+
+                return None
+
+            # found one valid line, compare with cmp_pattern
+            if ae(match.group(0), cmp_pattern):
+                ed = res_pos
+            else:
+                # this line and the lines follow, until ed,
+                # all locate before the target cmp_pattern, 
+                # thus return ed directly
+                return ed
+
+    return None if st > ed else ed
+
+def detect_format(start, end, regex_format = None):
+    """detect datetime format
+    Authors: xuruiqi
+    """
+    if regex_format:
+        # TODO(xuruiqi) actually direct_compare should not
+        # be set to without knowing the positions of year,
+        # month, day, hour, minute, second
+        return {
+            "regex"         : regex_format,
+            "direct_compare": True,
+            "parser"        : re.compile(regex_format)
+        }
+
+    global DATETIME_FORMAT_LIST
+    for datetime_format in DATETIME_FORMAT_LIST:
+        match = re.match(datetime_format["regex"], start)
+        if match:
+            regex_format_info = copy.deepcopy(datetime_format)
+            regex_format_info["parser"] = re.compile(
+                    datetime_format["regex"])
+            if datetime_format.get("direct_compare", None) is None:
+                regex_format_info["direct_compare"] = True
+            return regex_format_info
+        
+    return None
+
+def detect_file_order(f, start, end, regex_format_info):
+    """detect whether file is arranged in ascending order or
+    descending order
+    Authors: xuruiqi
+    """
+
+    global scan_line_num
+
+    file_order_info = {
+        "order" : None,
+    }
+
+    if end and dtcmp(start, end, regex_format_info, "<"):
+        file_order_info["order"] = "ascending"
+        return file_order_info
+    elif end and dtcmp(start, end, regex_format_info, ">"):
+        file_order_info["order"] = "descending"
+        return file_order_info
+    elif end and start == end:
+        return None
+
+    # sample the file
+    original_seek_pos = f.tell()
+    try:
+        MAX_READLINE_NUM  = 1000
+        first_datetime    = None
+        second_datetime   = None
+
+        # read from head
+        f.seek(0)
+        for i in xrange(0, MAX_READLINE_NUM):
+            scan_line_num += 1
+            line = f.readline()
+            if not line:
+                return None
+
+            match = regex_format_info["parser"].search(line)
+            if match:
+                first_datetime = match.group(0)
+                break
+        if not first_datetime:
+            return None
+
+        # read from tail
+        first_pos = f.tell()
+        f.seek(0, os.SEEK_END)
+        last_second_pos = f.tell()
+        for i in xrange(0, MAX_READLINE_NUM):
+            if last_second_pos <= first_pos:
+                return None
+
+            # locate the begining of the lines reversly
+            last_second_pos = locate_current_line(
+                    f, 
+                    last_second_pos - 1,
+                    first_pos - 1)
+            f.seek(last_second_pos)
+
+            scan_line_num += 1
+            line = f.readline()
+
+            # no need to judge if reaches eof, which is impossible
+
+            match = regex_format_info["parser"].search(line)
+            if match:
+                second_datetime = match.group(0)
+                break
+        if not second_datetime:
+            return None
+        
+        # compare first_datetime and second_datetime
+        if dtcmp(first_datetime, second_datetime, regex_format_info, "<"):
+            file_order_info["order"] = "ascending"
+            return file_order_info
+        elif dtcmp(first_datetime, second_datetime, regex_format_info, ">"):
+            file_order_info["order"] = "descending"
+            return file_order_info
+        else:
+            return None
+    except Exception as ex:
+        raise ex
+    finally:
+        f.seek(original_seek_pos)
+
+def handle_read(cmd_namespace):
+    """
+    Authors: xuruiqi
+    """
+    filepath_list = getattr(cmd_namespace, "file")
+    start         = getattr(cmd_namespace, "start")
+    end           = getattr(cmd_namespace, "end")
+
+    regex_format_info = detect_format(
+            start, 
+            end, 
+            getattr(cmd_namespace, "regex_format"))
+    if not regex_format_info:
+        return 1
+
+    for filepath in filepath_list:
+        if not os.path.isfile(filepath):
+            sys.stderr.write(
+                    color(
+                        "Error: path [{}] does not exist.\n\n".format(filepath),
+                        cl = "red"))
+            continue
+
+        global binary_loop_num
+        global scan_line_num
+        binary_loop_num = 0
+        scan_line_num   = 0
+
+        with open(filepath, "r") as f:
+            # detect order of lines, then select a compare function
+            # this is necessary because datetime in files may be in 
+            # ascending or descending order
+            file_order_info = detect_file_order(f, start, end, 
+                    regex_format_info)
+            if not file_order_info:
+                sys.stderr.write(
+                        color(
+                            "Error: can not detect datetime order in file " \
+                                "[{}].\n\n".format(filepath), 
+                            cl = "red"))
+                continue
+
+            # get current file size
+            start_pos = 0
+            f.seek(0, os.SEEK_END)
+            end_pos = f.tell()
+
+            # get start read position of the file
+            start_read_pos = binary_seek_pos(
+                    f, start_pos, end_pos,
+                    start,
+                    regex_format_info,
+                    file_order_info)
+            if not start_read_pos:
+                sys.stderr.write(
+                        color(
+                            "Error: no matching start line for reading.\n\n",
+                            cl = "red"))
+                continue
+
+            # get end read position of the file
+            if not end:
+                end_read_pos = end_pos
+            else:
+                end_read_pos = binary_seek_pos(
+                        f, start_read_pos, end_pos,
+                        end,
+                        regex_format_info,
+                        file_order_info)
+                if not end_read_pos:
+                    sys.stderr.write(
+                            color(
+                                "Error: no matching start line for reading." \
+                                    "\n\n",
+                                cl = "red"))
+                    continue
+                
+            # print verbose message
+            global enable_verbose
+            if enable_verbose:
+                sys.stdout.write(
+                        color(
+                            "[{}] after {} binary search loop, " \
+                                "and scaning {} lines, start and end " \
+                                "positions located\n".format(
+                                    filepath,
+                                    binary_loop_num,
+                                    scan_line_num)))
+                sys.stdout.write(
+                        color(
+                            "start read pos:[{}], end read pos:[{}].\n".format(
+                                start_read_pos, 
+                                end_read_pos)))
+                sys.stdout.write(color("---------------\n"))
+
+            # start reading
+            f.seek(start_read_pos)
+            line_count = 0
+            while f.tell() < end_read_pos:
+                line = f.readline()
+                if f.tell() > end_read_pos:
+                    break
+
+                sys.stdout.write(line)
+
+                line_count += 1
+
+            if enable_verbose:
+                sys.stdout.write(color("---------------\n"))
+                sys.stdout.write(color("[{}] finish read. " \
+                        "current f.tell() value:[{}], " \
+                        "end read pos:[{}]. exit.\n\n".format(
+                            filepath,
+                            f.tell(), 
+                            end_read_pos)))
+
+    return 0
+
+def main():
+    """
+    Authors: xuruiqi
+    """
+    global enable_color
+    global enable_verbose
+
+    try:
+        # parse command line options
+        parser = argparse.ArgumentParser(
+                description = "timecat command line tool uses " \
+                    "binary search on seekable log files to " \
+                    "directly locate positions between start " \
+                    "and end datetime, saving huge amounts of disk " \
+                    "I/Os, with high fault tolerance." \
+                    "Usage: " \
+                    "timecat -s '2016-01-02 20:13:14' -e '2016-01-02 20:14:13' " \
+                        "LOGFILE1.log LOGFILE2.log ...")
+        init_parser(parser)
+        cmd_namespace = parser.parse_args()
+
+        enable_color   = getattr(cmd_namespace, "enable_color")
+        enable_verbose = getattr(cmd_namespace, "enable_verbose")
+        if getattr(cmd_namespace, "date"):
+            setattr(cmd_namespace, "start",
+                    "{} {}".format(
+                        getattr(cmd_namespace, "date"),
+                        getattr(cmd_namespace, "start")))
+            if getattr(cmd_namespace, "end"):
+                setattr(cmd_namespace, "end",
+                        "{} {}".format(
+                            getattr(cmd_namespace, "date"),
+                            getattr(cmd_namespace, "end")))
+
+        return handle_read(cmd_namespace)
+
+    except Exception as ex:
+        errmsg = "Unknown exception=[{}], traceback=[{}]".format(
+                repr(ex),
+                repr(traceback.format_exception(*sys.exc_info())))
+        sys.stderr.write(color(errmsg + "\n", cl = "red"))
+        raise ex
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except Exception as ex:
+        sys.exit(-255)
