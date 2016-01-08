@@ -1,48 +1,34 @@
 # timecat
-强大的日志搜索辅助工具 - A powerful tool for search in log files.    
-环境要求/requirements：Python    
+<b>强大的日志搜索辅助工具 - A powerful tool for search in log files.</b>    
+环境要求/requirements：Python2.x    
 
-<pre>
-usage: timecat [-h] -s START [-e END] [-d DATE] [-r REGEX_FORMAT] [-v]
-               [--color]
-               file [file ...]
+## 安装 - Installation    
+两种方式 - There are two ways to get timecat.    
+1. `pip install timecat`    
+2. 或下载`timecat`文件后放在你的默认程序执行路径下 - Or directly download the `timecat` file, then add it to your default execution PATH    
 
-timecat command line tool uses binary search on seekable log files to directly
-locate positions between start and end datetime, saving huge amounts of disk
-I/Os, with high fault tolerance.Usage: timecat -s '2016-01-02 20:13:14' -e
-'2016-01-02 20:14:13' LOGFILE1.log LOGFILE2.log ...
+## 使用 - Usage    
+1. `timecat -d '2016-01-02' -s '20:13:14' -e '20:14:13' LOGFILE1.log LOGFILE2.log ...`    
+2. `timecat -s '2016-01-02 20:13:14' -e '2016-01-02 20:14:13' LOGFILE1.log LOGFILE2.log ...`    
+3. For more: `timecat -h`    
 
-positional arguments:
-  file                  files to be timecat.
+## 简介 - Description
+###中文简介    
+假如给你一个日志文件`A.log`，它的大小达到了<b>28G</b><br />    
+日志的起始时间为`Jan  1 20:13:14`，日志的结束时间为`Dec 31 20:14:13`<br />    
+现在要求你从中找出4月3号早上10点9分08秒到4月4好早上6点5分04秒的所有日志并输出<br />    
+你会怎么做？用awk？用grep？还是用sed？<br />    
+使用了`timecat`，你可以这样做：    
+<pre>    timecat -s 'Apr  3 10:09:08' -e 'Apr  4 06:05:04' A.log > timecat.out</pre>      
+这样，`timecat.out`保存的就是你想要的数据，定位速度之快超乎你想象。    
+如果你在生产环境中需要搜索海量的日志，这个工具一定是你的得力助手。
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -s START, --start-datetime START
-                        Which datetime to start(includsive). e.g. "-s
-                        '2016-01-02 20:13:14'", "-s '2016/01/02 20:13:14'",
-                        "-s '2016-01-02T12:13:14'", "-s
-                        '2016-01-02T12:13:14.000'", "-s
-                        '02/Jan/2016:20:13:14'", "-s '02-Jan-2016 20:13:14'",
-                        "-s '02 Jan 2016 20:13:14'", "-s 'Jan 2 20:13:14'",
-                        "-s '20160102201315'", "-s '1451736794'", "-s
-                        '20:13'", etc. We will exhaust our effort to cover
-                        regular datetime formats.
-  -e END, --end-datetime END
-                        Stop after reaching this datetime(excludsive). Same
-                        format as "-s". If not set, means output till the end
-                        of file.
-  -d DATE, --date DATE  This is an optional argument. With "-d", the following
-                        two statements are essentially the same: "timecat -s
-                        '2016-01-02 20:13:14' -e '2016-01-02 20:14:13' ..."
-                        and "timecat -d '2016-01-02' -s '20:13:14' -e
-                        '20:14:13' ...".
-  -r REGEX_FORMAT, --regex-format REGEX_FORMAT
-                        If timecat failes to detect datetime format in your
-                        log file, you can specify the regex pattern that can
-                        find your datetime within each log line. e.g. I have
-                        format "2016:01:01-20-13-14", and timecat does not
-                        recognize this datetime format, then I can specify "-r
-                        '\d{4}:\d{2}:\d{2}-\d{2}-\d{2}-\d{2}'".
-  -v, --verbose         print additional information
-  --color               Whether to enable colorized output
-</pre>
+###English Description    
+Imagine that given a log file `A.log` with its size reaches to <b>28G</b><br />    
+The log starts from `Jan  1 20:13:14`, ends with `Dec 31 20:14:13`<br />    
+Now you are required to output all the lines between April 3rd 10:09:08 and April 4th 06:05:04<br />    
+What will you do? Use awk? Use grep? Or sed?<br />    
+With `timecat`, you can do it this way:
+<pre>    timecat -s 'Apr  3 10:09:08' -e 'Apr  4 06:05:04' A.log > timecat.out</pre>    
+After this, `timecat.out` stores what you want, at an amazing searching speed.      
+When you have to search huge amounts of log files in production environment, this helps alot, saving huge amounts of disk I/Os, more importantly, time.    
