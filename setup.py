@@ -22,7 +22,7 @@ long_description = \
 
 setup(
     name         = "timecat",        
-    version      = "1.0",
+    version      = "1.0.2",
     description  = "a powerful tool for searching log files " \
             "with binary search algorithm",
     long_description = long_description,

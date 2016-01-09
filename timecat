@@ -11,6 +11,7 @@
         the start position and end position, then
         output content between the target positions.
 """
+__version__ = "1.0.2"
 
 import argparse
 import copy
@@ -539,8 +540,6 @@ def binary_seek_pos(f, st, ed, cmp_pattern, regex_format_info, file_order_info):
     ae = get_bi_cmp_func(file_order_info, regex_format_info)
 
     # start doing binary search
-    #print "regex format:{}".format(regex_format_info["regex"])
-    #print "haha st={}, ed={}".format(st, ed)
     regprog = regex_format_info["parser"]
     while st < ed:
         binary_loop_num += 1
@@ -550,12 +549,10 @@ def binary_seek_pos(f, st, ed, cmp_pattern, regex_format_info, file_order_info):
         # read until regex_format matches the line
         f.seek(mid)
         match, line, res_pos = forward_match(f, mid, ed, regprog)
-        #print "st={}, ed={}, mid={}, res_pos={}\n{}\n".format(st, ed, mid, repr(res_pos), line)
         if match:
             # modify group(0) compare if match pattern is after
             # or equal to the cmp_pattern
             if ae(match.group(0), cmp_pattern):
-                #print "match={}, cmp_pattern={}".format(match.group(0), cmp_pattern)
                 if res_pos == ed:
                     # in case this causes a dead loop, backward
                     # search a line and compare
@@ -788,7 +785,7 @@ def handle_read(cmd_namespace):
                     start,
                     regex_format_info,
                     file_order_info)
-            if not start_read_pos:
+            if start_read_pos is None:
                 sys.stderr.write(
                         color(
                             "Error: no matching start line for reading.\n\n",
@@ -804,10 +801,10 @@ def handle_read(cmd_namespace):
                         end,
                         regex_format_info,
                         file_order_info)
-                if not end_read_pos:
+                if end_read_pos is None:
                     sys.stderr.write(
                             color(
-                                "Error: no matching start line for reading." \
+                                "Error: no matching end line for reading." \
                                     "\n\n",
                                 cl = "red"))
                     continue
