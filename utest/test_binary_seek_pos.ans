@@ -1,0 +1,109 @@
+
+dataset[1]
+st=354, ed=679
+pos=354
+INFO 2015-12-13 13:13:20 /test/test.py:724 127.0.0.1 github.com/fanfank 5706f9f32b718f0c7 process=242998 thread=139949671794496 data=hello : reetsee_data abcdefghijklmnopqrst 3
+
+
+dataset[2]
+st=180, ed=856
+pos=354
+INFO 2015-12-13 13:13:20 /test/test.py:724 127.0.0.1 github.com/fanfank 5706f9f32b718f0c7 process=242998 thread=139949671794496 data=hello : reetsee_data abcdefghijklmnopqrst 3
+
+
+dataset[3]
+st=0, ed=354
+pos=0
+INFO 2015-12-13 12:13:20 /test/test.py:724 127.0.0.1 github.com/fanfank 5706f9f32b718f0c7 process=242998 thread=139949671794496 data=hello : reetsee_data abcdefghijklmnopqrst 1
+
+
+dataset[4]
+st=0, ed=354
+pos=354
+INFO 2015-12-13 13:13:20 /test/test.py:724 127.0.0.1 github.com/fanfank 5706f9f32b718f0c7 process=242998 thread=139949671794496 data=hello : reetsee_data abcdefghijklmnopqrst 3
+
+
+dataset[5]
+st=649, ed=1003
+pos=826
+INFO 2015-12-13 13:14:20 /test/test.py:724 127.0.0.1 github.com/fanfank 5706f9f32b718f0c7 process=242998 thread=139949671794496 data=hello : reetsee_data abcdefghijklmnopqrst 8
+
+
+dataset[6]
+st=0, ed=568
+pos=354
+INFO 2015-12-13 13:13:20 /test/test.py:724 127.0.0.1 github.com/fanfank 5706f9f32b718f0c7 process=242998 thread=139949671794496 data=hello : reetsee_data abcdefghijklmnopqrst 3
+
+
+dataset[7]
+st=0, ed=2616
+pos=354
+INFO 2015-12-13 13:13:20 /test/test.py:724 127.0.0.1 github.com/fanfank 5706f9f32b718f0c7 process=242998 thread=139949671794496 data=hello : reetsee_data abcdefghijklmnopqrst 3
+
+
+dataset[8]
+st=0, ed=2616
+pos=1553
+INFO 2015-12-13 15:14:20 /test/test.py:739 127.0.0.1 github.com/fanfank ffb034da94c8a3c4c process=240437 thread=139949671794496 data=stream_filter: display_status:96 abcdefghijklmnopqrst 12
+
+
+dataset[9]
+st=598, ed=3387
+pos=649
+INFO 2015-12-13 13:13:20 /test/test.py:724 127.0.0.1 github.com/fanfank 5706f9f32b718f0c7 process=242998 thread=139949671794496 data=hello : reetsee_data abcdefghijklmnopqrst 7
+
+
+dataset[10]
+st=568, ed=3359
+pos=1244
+INFO 2015-12-13 15:13:20 /test/test.py:517 127.0.0.1 github.com/fanfank 8acd5a195d8b165e2 process=238577 thread=139949671794496 data=www.reetsee.com=8 10
+
+
+dataset[11]
+st=568, ed=3359
+pos=1553
+INFO 2015-12-13 15:14:20 /test/test.py:739 127.0.0.1 github.com/fanfank ffb034da94c8a3c4c process=240437 thread=139949671794496 data=stream_filter: display_status:96 abcdefghijklmnopqrst 12
+
+
+dataset[12]
+st=1743, ed=3359
+pos=3359
+INFO 2015-12-13 16:13:20 /test/test.py:739 127.0.0.1 github.com/fanfank ffb034da94c8a3c4c process=240437 thread=139949671794496 data=stream_filter: display_status:96 abcdefghijklmnopqrst 43
+
+
+dataset[13]
+st=1844, ed=2437
+binary search return None
+
+dataset[14]
+st=531, ed=2106
+pos=649
+INFO 2015-12-13 13:13:20 /test/test.py:724 127.0.0.1 github.com/fanfank 5706f9f32b718f0c7 process=242998 thread=139949671794496 data=hello : reetsee_data abcdefghijklmnopqrst 7
+
+
+dataset[15]
+st=531, ed=2106
+pos=1553
+INFO 2015-12-13 15:14:20 /test/test.py:739 127.0.0.1 github.com/fanfank ffb034da94c8a3c4c process=240437 thread=139949671794496 data=stream_filter: display_status:96 abcdefghijklmnopqrst 12
+
+
+dataset[16]
+st=531, ed=2106
+pos=1244
+INFO 2015-12-13 15:13:20 /test/test.py:517 127.0.0.1 github.com/fanfank 8acd5a195d8b165e2 process=238577 thread=139949671794496 data=www.reetsee.com=8 10
+
+
+dataset[17]
+st=0, ed=3549
+pos=0
+INFO 2015-12-13 12:13:20 /test/test.py:724 127.0.0.1 github.com/fanfank 5706f9f32b718f0c7 process=242998 thread=139949671794496 data=hello : reetsee_data abcdefghijklmnopqrst 1
+
+
+dataset[18]
+st=0, ed=3549
+pos=3549
+
+
+dataset[19]
+st=2192, ed=2696
+binary search return None

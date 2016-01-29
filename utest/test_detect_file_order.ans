@@ -1,0 +1,18 @@
+case 1
+{'order': 'ascending'}
+
+case 2
+{'order': 'descending'}
+
+case 3
+{'order': 'ascending'}
+
+case 4
+{'order': 'descending'}
+
+case 5
+{'order': 'descending'}
+
+case 6
+{'order': 'ascending'}
+

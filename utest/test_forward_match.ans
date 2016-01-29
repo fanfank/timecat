@@ -1,0 +1,36 @@
+
+dataset[1]
+st=0, ed=2534
+match:[2015-12-13 12:13:20]
+last line:[INFO 2015-12-13 12:13:20 /test/test.py:724 127.0.0.1 github.com/fanfank 5706f9f32b718f0c7 process=242998 thread=139949671794496 data=hello : reetsee_data abcdefghijklmnopqrst
+]
+
+dataset[2]
+st=112, ed=2539
+match:[2015-12-13 12:13:20]
+last line:[INFO 2015-12-13 12:13:20 /test/test.py:724 127.0.0.1 github.com/fanfank 5706f9f32b718f0c7 process=242998 thread=139949671794496 data=hello : reetsee_data abcdefghijklmnopqrst
+]
+
+dataset[3]
+st=112, ed=112
+match:[2015-12-13 12:13:20]
+last line:[INFO 2015-12-13 12:13:20 /test/test.py:724 127.0.0.1 github.com/fanfank 5706f9f32b718f0c7 process=242998 thread=139949671794496 data=hello : reetsee_data abcdefghijklmnopqrst
+]
+
+dataset[4]
+st=113, ed=287
+match:[2015-12-13 12:13:20]
+last line:[NFO 2015-12-13 12:13:20 /test/test.py:724 127.0.0.1 github.com/fanfank 5706f9f32b718f0c7 process=242998 thread=139949671794496 data=hello : reetsee_data abcdefghijklmnopqrst
+]
+
+dataset[5]
+st=142, ed=287
+match:[2015-12-13 12:13:20]
+last line:[INFO 2015-12-13 12:13:20 /test/test.py:698 127.0.0.1 github.com/fanfank 7da6e5914b97ee879 process=125881 thread=139949671794496 data=plan feed.items= 15, feed_count: 15, has_more: True, items: [?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?]
+]
+
+dataset[6]
+st=1051, ed=2539
+no match
+last line:[OperationalError: (OperationalError) (2013, 'Lost connection to MySQL server during query') 'SELECT XXXX HAHAHAHAH' (38324L, 1, 500)
+]

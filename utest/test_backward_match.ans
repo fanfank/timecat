@@ -1,0 +1,53 @@
+
+dataset[1]
+st=0, ed=2539
+match:[2015-12-13 12:13:20]
+last line:[INFO 2015-12-13 12:13:20 /test/test.py:739 127.0.0.1 github.com/fanfank ffb034da94c8a3c4c process=240437 thread=139949671794496 data=stream_filter: display_status:96 abcdefghijklmnopqrst
+]
+
+dataset[2]
+st=112, ed=112
+no match
+last line:[None]
+
+dataset[3]
+st=112, ed=829
+match:[2015-12-13 12:13:20]
+last line:[INFO 2015-12-13 12:13:20 /test/test.py:517 127.0.0.1 github.com/fanfank 7da6e5914b97ee879 process=125881 thread=139949671794496 data=www.reetsee.com=15
+]
+
+dataset[4]
+st=832, ed=2539
+match:[2015-12-13 12:13:20]
+last line:[O 2015-12-13 12:13:20 /test/test.py:739 127.0.0.1 github.com/fanfank ffb034da94c8a3c4c process=240437 thread=139949671794496 data=stream_filter: display_status:96 abcdefghijklmnopqrst
+]
+
+dataset[5]
+st=859, ed=2539
+no match
+last line:[/test.py:739 127.0.0.1 github.com/fanfank ffb034da94c8a3c4c process=240437 thread=139949671794496 data=stream_filter: display_status:96 abcdefghijklmnopqrst
+]
+
+dataset[6]
+st=112, ed=287
+match:[2015-12-13 12:13:20]
+last line:[INFO 2015-12-13 12:13:20 /test/test.py:724 127.0.0.1 github.com/fanfank 5706f9f32b718f0c7 process=242998 thread=139949671794496 data=hello : reetsee_data abcdefghijklmnopqrst
+]
+
+dataset[7]
+st=142, ed=287
+no match
+last line:[/test.py:724 127.0.0.1 github.com/fanfank 5706f9f32b718f0c7 process=242998 thread=139949671794496 data=hello : reetsee_data abcdefghijklmnopqrst
+]
+
+dataset[8]
+st=829, ed=1046
+match:[2015-12-13 12:13:20]
+last line:[INFO 2015-12-13 12:13:20 /test/test.py:739 127.0.0.1 github.com/fanfank ffb034da94c8a3c4c process=240437 thread=139949671794496 data=stream_filter: display_status:96 abcdefghijklmnopqrst
+]
+
+dataset[9]
+st=859, ed=2539
+no match
+last line:[/test.py:739 127.0.0.1 github.com/fanfank ffb034da94c8a3c4c process=240437 thread=139949671794496 data=stream_filter: display_status:96 abcdefghijklmnopqrst
+]

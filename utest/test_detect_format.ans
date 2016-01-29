@@ -1,0 +1,66 @@
+case num:1
+{'regex': '(?P<YEAR>\\d{4})\\D(?P<MONTH>\\d{2})\\D(?P<DAY>\\d{2})\\D(?P<HOUR>\\d{2})\\D(?P<MINUTE>\\d{2})\\D(?P<SECOND>\\d{2})\\.(?P<MICROSECOND>\\d{1,3})', 'parser': 'parser obj', 'direct_compare': True, 'desc': 'e.g. 2016-01-02 20:13:14.666'}
+
+case num:2
+{'regex': '(?P<YEAR>\\d{4})\\D(?P<MONTH>\\d{2})\\D(?P<DAY>\\d{2})\\D(?P<HOUR>\\d{2})\\D(?P<MINUTE>\\d{2})\\D(?P<SECOND>\\d{2})', 'parser': 'parser obj', 'direct_compare': True, 'desc': 'e.g. 2016-01-02 20:13:14'}
+
+case num:3
+None
+
+case num:4
+{'regex': '(?P<MONTH>[a-zA-Z]{3})\\D(?P<DAY>[ \\d]{1}\\d{1})\\D(?P<HOUR>\\d{2})\\D(?P<MINUTE>\\d{2})\\D(?P<SECOND>\\d{2})', 'parser': 'parser obj', 'direct_compare': False, 'desc': 'syslog. e.g. Jan  2 20:13:14'}
+
+case num:5
+{'regex': '(?P<MONTH>[a-zA-Z]{3})\\D(?P<DAY>[ \\d]{1}\\d{1})\\D(?P<HOUR>\\d{2})\\D(?P<MINUTE>\\d{2})\\D(?P<SECOND>\\d{2})', 'parser': 'parser obj', 'direct_compare': False, 'desc': 'syslog. e.g. Jan  2 20:13:14'}
+
+case num:6
+{'regex': '(?P<MONTH>[a-zA-Z]{3})\\D(?P<DAY>[ \\d]{1}\\d{1})\\D(?P<HOUR>\\d{2})\\D(?P<MINUTE>\\d{2})\\D(?P<SECOND>\\d{2})', 'parser': 'parser obj', 'direct_compare': False, 'desc': 'syslog. e.g. Jan  2 20:13:14'}
+
+case num:7
+{'regex': '(?P<YEAR>\\d{4})\\D(?P<MONTH>\\d{2})\\D(?P<DAY>\\d{2})\\D(?P<HOUR>\\d{2})\\D(?P<MINUTE>\\d{2})\\D(?P<SECOND>\\d{2})\\.(?P<MICROSECOND>\\d{1,3})', 'parser': 'parser obj', 'direct_compare': True, 'desc': 'e.g. 2016-01-02 20:13:14.666'}
+
+case num:8
+{'regex': '(?P<YEAR>\\d{4})\\D(?P<MONTH>\\d{2})\\D(?P<DAY>\\d{2})\\D(?P<HOUR>\\d{2})\\D(?P<MINUTE>\\d{2})\\D(?P<SECOND>\\d{2})', 'parser': 'parser obj', 'direct_compare': True, 'desc': 'e.g. 2016-01-02 20:13:14'}
+
+case num:9
+{'regex': '(?P<YEAR>\\d{4})\\D(?P<MONTH>\\d{2})\\D(?P<DAY>\\d{2})\\D(?P<HOUR>\\d{2})\\D(?P<MINUTE>\\d{2})\\D(?P<SECOND>\\d{2})', 'parser': 'parser obj', 'direct_compare': True, 'desc': 'e.g. 2016-01-02 20:13:14'}
+
+case num:10
+{'regex': '(?P<DAY>\\d{2})\\D(?P<MONTH>[a-zA-Z]{3})\\D(?P<YEAR>\\d{4})\\D(?P<HOUR>\\d{2})\\D(?P<MINUTE>\\d{2})\\D(?P<SECOND>\\d{2})\\.(?P<MICROSECOND>\\d{1,3})', 'parser': 'parser obj', 'direct_compare': False, 'desc': 'e.g. 2016/Jan/02 20:13:14.666'}
+
+case num:11
+{'regex': '(?P<DAY>\\d{2})\\D(?P<MONTH>[a-zA-Z]{3})\\D(?P<YEAR>\\d{4})\\D(?P<HOUR>\\d{2})\\D(?P<MINUTE>\\d{2})\\D(?P<SECOND>\\d{2})', 'parser': 'parser obj', 'direct_compare': False, 'desc': 'e.g. 02-Jan-2016 20:13:14'}
+
+case num:12
+{'regex': '(?P<DAY>\\d{2})\\D(?P<MONTH>[a-zA-Z]{3})\\D(?P<YEAR>\\d{4})\\D(?P<HOUR>\\d{2})\\D(?P<MINUTE>\\d{2})\\D(?P<SECOND>\\d{2})', 'parser': 'parser obj', 'direct_compare': False, 'desc': 'e.g. 02-Jan-2016 20:13:14'}
+
+case num:13
+None
+
+case num:14
+{'regex': '\\d{14}', 'parser': 'parser obj', 'direct_compare': True, 'desc': 'datetime without seperator. e.g. 20160102201314'}
+
+case num:15
+{'regex': '\\d{13}', 'parser': 'parser obj', 'direct_compare': True, 'desc': 'timestamp in seconds'}
+
+case num:16
+{'regex': '\\d{10}', 'parser': 'parser obj', 'direct_compare': True, 'desc': 'timestamp in seconds'}
+
+case num:17
+{'regex': '(?P<HOUR>\\d{2})\\D(?P<MINUTE>\\d{2})\\D(?P<SECOND>\\d{2})', 'parser': 'parser obj', 'direct_compare': True, 'desc': 'only hour, minute and seconds'}
+
+case num:18
+None
+
+case num:19
+{'regex': '(?P<HOUR>\\d{2})\\D(?P<MINUTE>\\d{2})', 'parser': 'parser obj', 'direct_compare': True, 'desc': 'only hour and minutes'}
+
+case num:20
+None
+
+case num:21
+{'regex': '(?P<HOUR>\\d{2})\\D(?P<MINUTE>\\d{2})', 'parser': 'parser obj', 'direct_compare': True, 'desc': 'only hour and minutes'}
+
+case num:22
+None
+

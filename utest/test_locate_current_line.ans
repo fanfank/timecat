@@ -1,0 +1,15 @@
+
+dataset[1]
+
+
+dataset[2]
+OperationalError: (OperationalError) (2013, 'Lost connection to MySQL server during query') 'SELECT XXXX HAHAHAHAH' (38324L, 1, 500)
+
+
+dataset[3]
+O 2015-12-13 12:13:20 /test/test.py:724 127.0.0.1 github.com/fanfank 5706f9f32b718f0c7 process=242998 thread=139949671794496 data=hello : reetsee_data abcdefghijklmnopqrst
+
+
+dataset[4]
+  File "<stdin>", line 1, in <module>
+

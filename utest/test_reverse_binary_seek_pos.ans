@@ -1,0 +1,111 @@
+
+dataset[1]
+st=1806, ed=2335
+pos=1996
+INFO 2015-12-13 15:13:20 /test/test.py:517 127.0.0.1 github.com/fanfank 7da6e5914b97ee879 process=125881 thread=139949671794496 data=www.reetsee.com=15 11
+
+
+dataset[2]
+st=1809, ed=2026
+pos=1809
+O 2015-12-13 15:14:20 /test/test.py:739 127.0.0.1 github.com/fanfank ffb034da94c8a3c4c process=240437 thread=139949671794496 data=stream_filter: display_status:96 abcdefghijklmnopqrst 12
+
+
+dataset[3]
+st=1806, ed=2151
+pos=1996
+INFO 2015-12-13 15:13:20 /test/test.py:517 127.0.0.1 github.com/fanfank 7da6e5914b97ee879 process=125881 thread=139949671794496 data=www.reetsee.com=15 11
+
+
+dataset[4]
+st=3018, ed=3372
+pos=3195
+INFO 2015-12-13 12:13:20 /test/test.py:724 127.0.0.1 github.com/fanfank 5706f9f32b718f0c7 process=242998 thread=139949671794496 data=hello : reetsee_data abcdefghijklmnopqrst 2
+
+
+dataset[5]
+st=2305, ed=2546
+pos=2305
+INFO 2015-12-13 14:13:20 /test/test.py:698 127.0.0.1 github.com/fanfank 7da6e5914b97ee879 process=125881 thread=139949671794496 data=plan feed.items= 15, feed_count: 15, has_more: True, items: [?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?] 9
+
+
+dataset[6]
+st=0, ed=427
+pos=0
+INFO 2015-12-13 16:13:20 /test/test.py:739 127.0.0.1 github.com/fanfank ffb034da94c8a3c4c process=240437 thread=139949671794496 data=stream_filter: display_status:96 abcdefghijklmnopqrst 43
+
+
+dataset[7]
+st=0, ed=1768
+pos=1768
+Traceback (most recent call last): 13
+
+
+dataset[8]
+st=0, ed=2941
+pos=1996
+INFO 2015-12-13 15:13:20 /test/test.py:517 127.0.0.1 github.com/fanfank 7da6e5914b97ee879 process=125881 thread=139949671794496 data=www.reetsee.com=15 11
+
+
+dataset[9]
+st=947, ed=2574
+pos=2305
+INFO 2015-12-13 14:13:20 /test/test.py:698 127.0.0.1 github.com/fanfank 7da6e5914b97ee879 process=125881 thread=139949671794496 data=plan feed.items= 15, feed_count: 15, has_more: True, items: [?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?] 9
+
+
+dataset[10]
+st=917, ed=3549
+pos=2305
+INFO 2015-12-13 14:13:20 /test/test.py:698 127.0.0.1 github.com/fanfank 7da6e5914b97ee879 process=125881 thread=139949671794496 data=plan feed.items= 15, feed_count: 15, has_more: True, items: [?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?] 9
+
+
+dataset[11]
+st=2941, ed=3225
+pos=3195
+INFO 2015-12-13 12:13:20 /test/test.py:724 127.0.0.1 github.com/fanfank 5706f9f32b718f0c7 process=242998 thread=139949671794496 data=hello : reetsee_data abcdefghijklmnopqrst 2
+
+
+dataset[12]
+st=837, ed=1996
+pos=1806
+INFO 2015-12-13 15:14:20 /test/test.py:739 127.0.0.1 github.com/fanfank ffb034da94c8a3c4c process=240437 thread=139949671794496 data=stream_filter: display_status:96 abcdefghijklmnopqrst 12
+
+
+dataset[13]
+st=917, ed=1421
+binary search return None
+
+dataset[14]
+st=470, ed=2984
+pos=1996
+INFO 2015-12-13 15:13:20 /test/test.py:517 127.0.0.1 github.com/fanfank 7da6e5914b97ee879 process=125881 thread=139949671794496 data=www.reetsee.com=15 11
+
+
+dataset[15]
+st=720, ed=2951
+pos=2941
+  File "<stdin>", line 1, in <module> 5
+
+
+dataset[16]
+st=190, ed=1806
+pos=1806
+INFO 2015-12-13 15:14:20 /test/test.py:739 127.0.0.1 github.com/fanfank ffb034da94c8a3c4c process=240437 thread=139949671794496 data=stream_filter: display_status:96 abcdefghijklmnopqrst 12
+
+
+dataset[17]
+st=0, ed=3549
+pos=0
+INFO 2015-12-13 16:13:20 /test/test.py:739 127.0.0.1 github.com/fanfank ffb034da94c8a3c4c process=240437 thread=139949671794496 data=stream_filter: display_status:96 abcdefghijklmnopqrst 43
+
+
+dataset[18]
+st=0, ed=3549
+pos=3549
+
+
+dataset[19]
+st=1996, ed=2305
+pos=1996
+INFO 2015-12-13 15:13:20 /test/test.py:517 127.0.0.1 github.com/fanfank 7da6e5914b97ee879 process=125881 thread=139949671794496 data=www.reetsee.com=15 11
+
