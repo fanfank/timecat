@@ -1,0 +1,38 @@
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+NameError: name 'count' is not defined
+INFO 2015-12-13 12:13:20 /test/test.py:724 127.0.0.1 github.com/fanfank 5706f9f32b718f0c7 process=242998 thread=139949671794496 data=hello : reetsee_data abcdefghijklmnopqrst
+INFO 2015-12-13 12:13:20 /test/test.py:698 127.0.0.1 github.com/fanfank 7da6e5914b97ee879 process=125881 thread=139949671794496 data=plan feed.items= 15, feed_count: 15, has_more: True, items: [?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?]
+INFO 2015-12-13 12:13:20 /test/test.py:517 127.0.0.1 github.com/fanfank 8acd5a195d8b165e2 process=238577 thread=139949671794496 data=www.reetsee.com=8
+INFO 2015-12-13 12:13:20 /test/test.py:517 127.0.0.1 github.com/fanfank 7da6e5914b97ee879 process=125881 thread=139949671794496 data=www.reetsee.com=15
+INFO 2015-12-13 12:13:20 /test/test.py:739 127.0.0.1 github.com/fanfank ffb034da94c8a3c4c process=240437 thread=139949671794496 data=stream_filter: display_status:96 abcdefghijklmnopqrst
+Traceback (most recent call last):
+  File "/test/test.py", line 374, in mosiac_you_cant_see_me
+    media_ids = set(device_like_medias_cache.get(device_id=device_id, cache_only=cache_only) or [])
+  File "/test/test.py", line 77, in mosiac_you_cant_see_me
+    data = self._get(**kwargs)
+  File "/test/test.py", line 475, in mosiac_you_cant_see_me
+    .limit(500))])
+  File "/test/test.py", line 2366, in mosiac_you_cant_see_me
+    return self._execute_and_instances(context)
+  File "/test/test.py", line 2381, in mosiac_you_cant_see_me
+    result = conn.execute(querycontext.statement, self._params)
+  File "/test/test.py", line 662, in mosiac_you_cant_see_me
+    params)
+  File "/test/test.py", line 761, in mosiac_you_cant_see_me
+    compiled_sql, distilled_params
+  File "/test/test.py", line 874, in mosiac_you_cant_see_me
+    context)
+  File "/test/test.py", line 1024, in mosiac_you_cant_see_me
+    exc_info
+  File "/test/test.py", line 196, in mosiac_you_cant_see_me
+    reraise(type(exception), exception, tb=exc_tb)
+  File "/test/test.py", line 867, in mosiac_you_cant_see_me
+    context)
+  File "/test/test.py", line 324, in mosiac_you_cant_see_me
+    cursor.execute(statement, parameters)
+  File "/test/test.py", line 202, in mosiac_you_cant_see_me
+    self.errorhandler(self, exc, value)
+  File "/test/test.py", line 36, in mosiac_you_cant_see_me
+    raise errorclass, errorvalue
+OperationalError: (OperationalError) (2013, 'Lost connection to MySQL server during query') 'SELECT XXXX HAHAHAHAH' (38324L, 1, 500)
