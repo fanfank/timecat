@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from include import *
-from timecat import detect_format
+from timecat import detect_datetime_format
 from timecat import dtcmp
 
 case_num = 0
@@ -14,7 +14,7 @@ def docmp(lhs, rhs, regex_format_info, cmp_op):
     print("")
 
 if __name__ == "__main__":
-    regex_format_info = detect_format("Oct 09 20:13:14", None, None)
+    regex_format_info = detect_datetime_format("Oct 09 20:13:14", None)
     # 1. False
     docmp("Oct 09 20:13:14", "Nov 08 19:12:13", regex_format_info, ">")
     # 2. True
@@ -30,7 +30,7 @@ if __name__ == "__main__":
     # 7. False
     docmp("Oct 09 20:13:14", "Nov 08 19:12:13", regex_format_info, ">=")
 
-    regex_format_info = detect_format("02/Oct/2016:20:13:14.666", None, None)
+    regex_format_info = detect_datetime_format("02/Oct/2016:20:13:14.666", None)
     # 8. True
     docmp("02/Oct/2016:20:13:14.666", "02/Sep/2016:20:13:14.666", regex_format_info, ">")
     # 9. True

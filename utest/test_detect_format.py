@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 
 from include import *
-from timecat import detect_format
+from timecat import detect_datetime_format
 
 case_num = 0
 def check(st, regex_format = None):
     global case_num
     case_num += 1
     print("case num:{}".format(case_num))
-    regex_format_info = detect_format(st, None, regex_format)
+    regex_format_info = detect_datetime_format(st, regex_format)
     if regex_format_info:
         regex_format_info["parser"] = "parser obj" # always change, it's an obj
     print(repr(regex_format_info))

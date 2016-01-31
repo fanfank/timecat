@@ -11,7 +11,7 @@
         the start position and end position, then
         output content between the target positions.
 """
-__version__ = "1.0.2"
+__version__ = "2.0.0"
 
 import argparse
 import copy
@@ -60,42 +60,55 @@ DATETIME_FORMAT_LIST = [
     },
     {
         "desc" : "datetime without seperator. e.g. 20160102201314",
-        "regex": "\d{14}",
+        #"regex": "\d{14}",
+        "regex": "(?P<YEAR>\d{4})(?P<MONTH>\d{2})(?P<DAY>\d{2})(?P<HOUR>\d{2})(?P<MINUTE>\d{2})(?P<SECOND>\d{2})",
+        "direct_compare": True,
+    },
+    {
+        "desc" : "timestamp in microseconds",
+        "regex": "(?P<MICROTS>\d{13})",
         "direct_compare": True,
     },
     {
         "desc" : "timestamp in seconds",
-        "regex": "\d{13}",
-        "direct_compare": True,
-    },
-    {
-        "desc" : "timestamp in seconds",
-        "regex": "\d{10}",
+        "regex": "(?P<TS>\d{10})",
         "direct_compare": True,
     },
     {
         "desc" : "only hour, minute and seconds",
-        "regex": "(?P<HOUR>\d{2})\D(?P<MINUTE>\d{2})\D(?P<SECOND>\d{2})",
+        "regex": "(?P<HOUR>\d{2}):(?P<MINUTE>\d{2}):(?P<SECOND>\d{2})",
         "direct_compare": True,
     },
     {
         "desc" : "only hour and minutes",
-        "regex": "(?P<HOUR>\d{2})\D(?P<MINUTE>\d{2})",
+        "regex": "(?P<HOUR>\d{2}):(?P<MINUTE>\d{2})",
         "direct_compare": True,
     },
 ]
 
 MONTH_DICT = {
-    "Jan" : 1,  "Feb" : 2, "Mar" : 3, "Apr" : 4, "May" : 5,
-    "Jun" : 6,  "Jul" : 7, "Aug" : 8, "Sep" : 9, "Oct" : 10,
-    "Nov" : 11, "Dec" : 12,
-    "01"  : 1,  "02"  : 2, "03"  : 3, "04"  : 4, "05"  : 5,
-    "06"  : 6,  "07"  : 7, "08"  : 8, "09"  : 9, "10"  : 10,
-    "11"  : 11, "12"  : 12,
-    "1"   : 1,  "2"   : 2, "3"   : 3, "4"   : 4, "5"   : 5,
-    "6"   : 6,  "7"   : 7, "8"   : 8, "9"   : 9,
-    " 1"  : 1,  " 2"  : 2, " 3"  : 3, " 4"  : 4, " 5"  : 5,
-    " 6"  : 6,  " 7"  : 7, " 8"  : 8, " 9"  : 9,
+    "Jan": 1,  "Feb": 2,  "Mar": 3, "Apr": 4, "May": 5,
+    "Jun": 6,  "Jul": 7,  "Aug": 8, "Sep": 9, "Oct": 10,
+    "Nov": 11, "Dec": 12, 
+    "01" : 1,  "02" : 2,  "03" : 3, "04" : 4, "05" : 5,
+    "06" : 6,  "07" : 7,  "08" : 8, "09" : 9, "10" : 10,
+    "11" : 11, "12" : 12, 
+    "1"  : 1,  "2"  : 2,  "3"  : 3, "4"  : 4, "5"  : 5,
+    "6"  : 6,  "7"  : 7,  "8"  : 8, "9"  : 9,
+    " 1" : 1,  " 2" : 2,  " 3" : 3, " 4" : 4, " 5" : 5,
+    " 6" : 6,  " 7" : 7,  " 8" : 8, " 9" : 9,
+}
+
+DAY_DICT = {
+    "01": 1,  "02": 2,  "03": 3,  "04": 4,  "05": 5,
+    "06": 6,  "07": 7,  "08": 8,  "09": 9,
+    " 1": 1,  " 2": 2,  " 3": 3,  " 4": 4,  " 5": 5,
+    " 6": 6,  " 7": 7,  " 8": 8,  " 9": 9,
+    "10": 10, "11": 11, "12": 12, "13": 13, "14": 14,
+    "15": 15, "16": 16, "17": 17, "18": 18, "19": 19,
+    "20": 20, "21": 21, "22": 22, "23": 23, "24": 24,
+    "25": 25, "26": 26, "27": 27, "28": 28, "29": 29,
+    "30": 30, "31": 31,
 }
 
 CMP_OP_DICT = {
@@ -118,6 +131,12 @@ def color(content, cl = "green"):
     else:
         return content
 
+def ts2dt(ts, dt_format="%Y-%m-%d %H:%M:%S"):
+    return datetime.datetime.fromtimestamp(ts).strftime(dt_format)
+
+def dt2ts(dt, dt_format="%Y-%m-%d %H:%M:%S"):
+    return time.mktime(time.strptime(dt, dt_format))
+
 def init_parser(target_parser):
     target_parser.add_argument(
             "-s", "--start-datetime", dest = "start",
@@ -135,7 +154,9 @@ def init_parser(target_parser):
                 "\"-s '20160102201315'\", " \
                 "\"-s '1451736794'\", " \
                 "\"-s '20:13'\", etc. We will exhaust " \
-                "our effort to cover regular datetime formats.")
+                "our effort to cover regular datetime formats. " \
+                "The format of -s and -e params do not need to " \
+                "be consistent with the datetime format in the file.")
     target_parser.add_argument(
             "-e", "--end-datetime", dest = "end",
             default = None,
@@ -149,16 +170,17 @@ def init_parser(target_parser):
                 "following two statements are essentially the same: " \
                 "\"timecat -s '2016-01-02 20:13:14' -e '2016-01-02 20:14:13' ...\" " \
                 "and \"timecat -d '2016-01-02' -s '20:13:14' -e '20:14:13' ...\"." )
-    target_parser.add_argument(
-            "-r", "--regex-format", dest = "regex_format",
-            default = None,
-            help = "If timecat failes to detect datetime format in " \
-                "your log file, you can specify the regex pattern " \
-                "that can find your datetime within each log line. " \
-                "e.g. I have format \"2016:01:01-20-13-14\", and " \
-                "timecat does not recognize this datetime format, " \
-                "then I can specify " \
-                "\"-r '\d{4}:\d{2}:\d{2}-\d{2}-\d{2}-\d{2}'\".")
+    #target_parser.add_argument(
+    #        #DEPRECATED
+    #        "-r", "--regex-format", dest = "regex_format",
+    #        default = None,
+    #        help = "If timecat failes to detect datetime format in " \
+    #            "your log file, you can specify the regex pattern " \
+    #            "that can find your datetime within each log line. " \
+    #            "e.g. I have format \"2016:01:01-20-13-14\", and " \
+    #            "timecat does not recognize this datetime format, " \
+    #            "then I can specify " \
+    #            "\"-r '\d{4}:\d{2}:\d{2}-\d{2}-\d{2}-\d{2}'\".")
     target_parser.add_argument(
             "-v", "--verbose", dest = "enable_verbose",
             action = "store_true",
@@ -172,13 +194,13 @@ def init_parser(target_parser):
             "file", nargs = "+",
             help = "files to be timecat.")
 
-def dtcmp(lhs, rhs, regex_format_info, cmp_op):
+def dtcmp(lhs, rhs, format_info, cmp_op):
     """compare datetime
 
     Params:
         lhs # left hand side
         rhs # right hand side
-        regex_format_info = {
+        format_info = {
             "regex"  # the regular expression
             "parser" # the compiled regular expression
             "direct_compare"    # indicates whether lhs and
@@ -193,12 +215,12 @@ def dtcmp(lhs, rhs, regex_format_info, cmp_op):
 
     cmpf = CMP_OP_DICT[cmp_op]
 
-    if cmp_op in ["=", "!="] or regex_format_info["direct_compare"]:
+    if cmp_op in ["=", "!="] or format_info["direct_compare"]:
         return cmpf(lhs, rhs)
 
     else:
-        lhs_match = regex_format_info["parser"].search(lhs)
-        rhs_match = regex_format_info["parser"].search(rhs)
+        lhs_match = format_info["parser"].search(lhs)
+        rhs_match = format_info["parser"].search(rhs)
 
         lhs_groupdict = lhs_match.groupdict()
         rhs_groupdict = rhs_match.groupdict()
@@ -221,17 +243,180 @@ def dtcmp(lhs, rhs, regex_format_info, cmp_op):
         else:
             return True
 
-def get_bi_cmp_func(file_order_info, regex_format_info):
-    """return compare function(s) according to file_order_info
+def get_bi_cmp_func(file_format_info, param_format_info):
+    """return compare function(s) according to file_format_info
     Authors: xuruiqi
     """
 
     def ge(lhs, rhs):
-        return dtcmp(lhs, rhs, regex_format_info, ">=")
+        return dtcmp(lhs, rhs, file_format_info, ">=")
     def le(lhs, rhs):
-        return dtcmp(lhs, rhs, regex_format_info, "<=")
+        return dtcmp(lhs, rhs, file_format_info, "<=")
         
-    if file_order_info["order"] == "ascending":
+    if file_format_info["order"] == "ascending":
+        return ge
+    else:
+        return le
+
+def get_bi_cmp_func2(file_format_info, cmp_pattern_format_info, cmp_pattern):
+    """a refined function of get_bi_cmp_func since timecat 2.x
+
+    Authors: xuruiqi
+    """
+    global DAY_DICT
+    global MONTH_DICT
+
+    # unify the datetime formats from file and user input
+    file_sample_match = file_format_info["parser"].search(
+            file_format_info["sample"])
+    cmp_pattern_match = cmp_pattern_format_info["parser"].search(
+            cmp_pattern)
+
+    def year_adapt_func(match):
+        #TODO(xuruiqi) have to consider global time
+
+        mgd = match.groupdict()
+        return mgd.get("YEAR", "1970") + \
+                str(MONTH_DICT[mgd.get("MONTH", "01")]) + \
+                str(DAY_DICT[mgd.get("DAY", "01")]) + \
+                mgd.get("HOUR", "00") + \
+                mgd.get("MINUTE", "00") + \
+                mgd.get("SECOND", "00") + \
+                "%03d" % int(mgd.get("MICROSECOND", "000"))
+
+    def month_adapt_func(match):
+        mgd = match.groupdict()
+        return str(MONTH_DICT[mgd.get("MONTH", "01")]) + \
+                str(DAY_DICT[mgd.get("DAY", "01")]) + \
+                mgd.get("HOUR", "00") + \
+                mgd.get("MINUTE", "00") + \
+                mgd.get("SECOND", "00") + \
+                "%03d" % int(mgd.get("MICROSECOND", "000"))
+
+    def hour_adapt_func(match):
+        mgd = match.groupdict()
+        return mgd.get("HOUR", "00") + \
+                mgd.get("MINUTE", "00") + \
+                mgd.get("SECOND", "00") + \
+                "%03d" % int(mgd.get("MICROSECOND", "000"))
+
+    adapt_func_dict = {
+        "MICROTS": lambda x: x,
+        "TS"     : lambda x: x + "000",
+        "YEAR"   : year_adapt_func,
+        "MONTH"  : month_adapt_func,
+        "HOUR"   : hour_adapt_func,
+    }
+
+    pattern_type_conversion_dict = {
+        "MICROTS": "MICROTS",
+        "TS"     : "MICROTS",
+        "YEAR"   : "YEAR",
+        "MONTH"  : "MONTH",
+        "HOUR"   : "HOUR",
+    }
+
+    fsm_groupdict = file_sample_match.groupdict()
+    cpm_groupdict = cmp_pattern_match.groupdict()
+
+    final_pattern_type      = None
+    file_pattern_adapt_func = None
+    for key in ["MICROTS", "TS", "YEAR", "MONTH", "HOUR"]:
+        if fsm_groupdict.get(key, None):
+            final_pattern_type = pattern_type_conversion_dict[key]
+            file_pattern_adapt_func = adapt_func_dict[key]
+            break
+
+    if final_pattern_type is None:
+        raise Exception("Invalid datetime format in file")
+
+    # Convert cmp_pattern to final pattern format
+    # Firstly, convert to MICROTS type 
+    if cpm_groupdict.get("MICROTS", None):
+        pass
+
+    elif cpm_groupdict.get("TS", None):
+        cmp_pattern = cmp_pattern + "000"
+
+    elif cpm_groupdict.get("YEAR", None):
+        year_pattern = adapt_func_dict["YEAR"](cmp_pattern_match)
+        cmp_pattern = str(dt2ts(year_pattern[:-3], "%Y%m%d%H%M%S")) + \
+                year_pattern[-3:]
+
+    elif cpm_groupdict.get("MONTH", None):
+        # this situation is a little bit compilicated
+        # When file is in a TS/MICROTS/YEAR format
+        # we have to guess the year of the cmp pattern
+        if final_pattern_type == "MONTH" or final_pattern_type == "HOUR":
+            month_pattern = adapt_func_dict["YEAR"](cmp_pattern_match)
+            cmp_pattern = str(dt2ts(year_pattern[:-3], "%Y%m%d%H%M%S")) + \
+                    year_pattern[-3:]
+
+        elif final_pattern_type == "YEAR" or final_pattern_type == "MICROTS":
+            month_pattern = adapt_func_dict["MONTH"](cmp_pattern_match)
+
+            # extract year
+            if final_pattern_type == "YEAR":
+                year = file_pattern_adapt_func(file_sample_match)[0:4]
+            elif final_pattern_type == "MICROTS":
+                year_month_day = \
+                        ts2dt(file_sample_match.group(0)[:10], "%Y")
+            cmp_pattern = \
+                    str( \
+                        dt2ts(year + month_pattern[:-3], \
+                            "%Y%m%d%H%M%S")) + \
+                    month_pattern[-3:]
+
+    elif cpm_groupdict.get("HOUR", None):
+        # this situation is a little bit compilicated
+        # When file is in a TS/MICROTS/YEAR format
+        # we have to guess the year, month and day
+        # of the cmp pattern
+        if final_pattern_type == "HOUR":
+            year_pattern = adapt_func_dict["YEAR"](cmp_pattern_match)
+            cmp_pattern = str(dt2ts(year_pattern[:-3], "%Y%m%d%H%M%S")) + \
+                    year_pattern[-3:]
+        elif final_pattern_type == "YEAR" or final_pattern_type == "MICROTS":
+            hour_pattern = adapt_func_dict["HOUR"](cmp_pattern_match)
+
+            # extract year month day
+            if final_pattern_type == "YEAR":
+                year_month_day = file_pattern_adapt_func(file_sample_match)[0:8]
+            elif final_pattern_type == "MICROTS":
+                year_month_day = \
+                        ts2dt(file_sample_match.group(0)[:10], "%Y%m%d")
+
+            cmp_pattern = \
+                    str( \
+                        dt2ts(year_month_day + hour_pattern[:-3], \
+                            "%Y%m%d%H%M%S")) + \
+                    hour_pattern[-3:]
+
+    #TODO(xuruiqi) Latter we have to consider global time
+    # Convert from MICROTS to final_pattern_type
+    if final_pattern_type == "MICROTS":
+        # do nothing
+        pass
+    else:
+        dtformat = "%Y%m%d%H%M%S"
+        if final_pattern_type == "HOUR":
+            final_pattern_type = "%H%M%S"
+        elif final_pattern_type == "MONTH":
+            final_pattern_type = "%m%d%H%M%S"
+
+        cmp_pattern = ts2dt(int(cmp_pattern[0:10]), dtformat) + \
+                cmp_pattern[-3:]
+
+    # Finish unifying the datetime format from user input and file
+    # Return corresponding compare function
+    def ge(line_match):
+        adapt_pattern = file_pattern_adapt_func(line_match)
+        return adapt_pattern >= cmp_pattern
+    def le(line_match):
+        adapt_pattern = file_pattern_adapt_func(line_match)
+        return adapt_pattern <= cmp_pattern
+
+    if file_format_info["order"] == "ascending":
         return ge
     else:
         return le
@@ -506,9 +691,10 @@ def backward_match(f, ed, st, regprog, backward_step_hint = 1024 * 4):
     f.seek(st)
     return None, line, f.tell()
 
-def binary_seek_pos(f, st, ed, cmp_pattern, regex_format_info, file_order_info):
+def binary_seek_pos(f, st, ed, cmp_pattern, param_format_info, 
+        file_format_info):
     """use binary search to find the first line that is bigger/smaller
-    than the regex_format when file is in ascending/descending order
+    than the cmp_pattern when file is in ascending/descending order
 
     Authors: xuruiqi
     """
@@ -529,7 +715,7 @@ def binary_seek_pos(f, st, ed, cmp_pattern, regex_format_info, file_order_info):
     # unless ed is at eof
     ed = locate_current_line(f, ed, st_bound)
 
-    # get compare function according to file_order_info
+    # get compare function according to file_format_info
     # ae => after or equal to
     # when file is in ascending order, ae == ">="
     # when file is in descending order, ae == "<="
@@ -537,22 +723,23 @@ def binary_seek_pos(f, st, ed, cmp_pattern, regex_format_info, file_order_info):
     #   it indicates that the left hand side parameter
     #   stands after or has the same value as the right
     #   hand side parameter
-    ae = get_bi_cmp_func(file_order_info, regex_format_info)
+    ae = get_bi_cmp_func2(file_format_info, param_format_info, cmp_pattern)
+    #ae = get_bi_cmp_func(file_format_info, param_format_info)
 
     # start doing binary search
-    regprog = regex_format_info["parser"]
+    regprog = file_format_info["parser"]
     while st < ed:
         binary_loop_num += 1
 
         mid = st + (ed - st) / 2
 
-        # read until regex_format matches the line
+        # read until regprog matches the line
         f.seek(mid)
         match, line, res_pos = forward_match(f, mid, ed, regprog)
         if match:
             # modify group(0) compare if match pattern is after
             # or equal to the cmp_pattern
-            if ae(match.group(0), cmp_pattern):
+            if ae(match):
                 if res_pos == ed:
                     # in case this causes a dead loop, backward
                     # search a line and compare
@@ -580,12 +767,12 @@ def binary_seek_pos(f, st, ed, cmp_pattern, regex_format_info, file_order_info):
                         # they cover positions st and ed. just
                         # compare and decide which to return
                         
-                        if ae(match.group(0), cmp_pattern):
+                        if ae(match):
                             return st
                         else:
                             return res_pos
                     else:
-                        if ae(match.group(0), cmp_pattern):
+                        if ae(match):
                             ed = back_res_pos
                         else:
                             st = back_res_pos
@@ -611,7 +798,7 @@ def binary_seek_pos(f, st, ed, cmp_pattern, regex_format_info, file_order_info):
                 return None
 
             # found one valid line, compare with cmp_pattern
-            if ae(match.group(0), cmp_pattern):
+            if ae(match):
                 ed = res_pos
             else:
                 # this line and the lines follow, until ed,
@@ -621,56 +808,130 @@ def binary_seek_pos(f, st, ed, cmp_pattern, regex_format_info, file_order_info):
 
     return None if st > ed else ed
 
-def detect_format(start, end, regex_format = None):
-    """detect datetime format
+def detect_datetime_format(pattern, param_format = None):
+    """detect datetime format of a pattern
+
     Authors: xuruiqi
-    """
-    if regex_format:
-        # TODO(xuruiqi) actually direct_compare should not
-        # be set to without knowing the positions of year,
-        # month, day, hour, minute, second
-        return {
-            "regex"         : regex_format,
-            "direct_compare": True,
-            "parser"        : re.compile(regex_format)
+
+    Returns:
+        {
+            "regex": , # string type of regex format
+            "direct_compare": , # whether it's able to 
+                                # directly compare two time pattern
+            "parser": , # compiled regex object
+            "sample": , # the pattern itself
+            "is_global_time": , # indicate whether it is UTC time
         }
+    """
 
     global DATETIME_FORMAT_LIST
     for datetime_format in DATETIME_FORMAT_LIST:
-        match = re.match(datetime_format["regex"], start)
+        match = re.search(datetime_format["regex"], pattern)
         if match:
-            regex_format_info = copy.deepcopy(datetime_format)
-            regex_format_info["parser"] = re.compile(
+            datetime_format_info = copy.deepcopy(datetime_format)
+            datetime_format_info["parser"] = re.compile(
                     datetime_format["regex"])
             if datetime_format.get("direct_compare", None) is None:
-                regex_format_info["direct_compare"] = True
-            return regex_format_info
+                datetime_format_info["direct_compare"] = True
+            datetime_format_info["sample"] = pattern
+
+            #datetime_format_info["is_global_time"] = True \
+            #        if pattern.find("T") >= 0 \
+            #        else False
+            if pattern.find("T") >= 0:
+                datetime_format_info["is_global_time"] = True
+
+            return datetime_format_info
         
     return None
 
-def detect_file_order(f, start, end, regex_format_info):
+def detect_file_format(f, start, end, param_format_info):
     """detect whether file is arranged in ascending order or
-    descending order
+    descending order, and detect the datetime format of file
+
     Authors: xuruiqi
+
+    Returns:
+        {
+            "regex": ,  # string type of regex format
+            "direct_compare": , # whether it's able to 
+                                # directly compare two time pattern
+            "parser": , # compiled regex object
+            "order": ,  # the value is 'ascending' or 'descending',
+                          indicating the order of the file
+            "sample": , # the pattern itself
+        }
     """
 
     global scan_line_num
+    original_seek_pos = f.tell()
 
-    file_order_info = {
+    file_format_info = {
+        "regex" : None,
+        "direct_compare": None,
+        "parser": None,
         "order" : None,
+        "sample": None,
     }
 
-    if end and dtcmp(start, end, regex_format_info, "<"):
-        file_order_info["order"] = "ascending"
-        return file_order_info
-    elif end and dtcmp(start, end, regex_format_info, ">"):
-        file_order_info["order"] = "descending"
-        return file_order_info
+    # sample the file to determine datetime format in file
+    try:
+        MAX_READLINE_NUM = 100
+        COUNT_THRESHOLD  = 3
+
+        f.seek(0)
+        current_format_info = None
+        current_count       =  0
+        for i in xrange(0, MAX_READLINE_NUM):
+            scan_line_num += 1
+            line = f.readline()
+            if not line:
+                break
+            
+            tmp_format_info = detect_datetime_format(line)
+            if tmp_format_info is None:
+                continue
+            
+            if current_format_info is None or \
+                    tmp_format_info["regex"] == current_format_info["regex"]:
+                current_count += 1
+                if current_format_info is None:
+                    current_format_info = tmp_format_info
+            else:
+                current_count -= 1
+                if current_count <= 0:
+                    current_count = 1
+                    current_format_info = tmp_format_info
+
+            if current_count >= COUNT_THRESHOLD:
+                break
+
+        # can not return None, because some file may have very few lines
+        #if current_count < COUNT_THRESHOLD:
+        #    return None
+
+    except Exception as ex:
+        raise ex
+    finally:
+        f.seek(original_seek_pos)
+
+    file_format_info["direct_compare"] = current_format_info["direct_compare"]
+    file_format_info["regex"]  = current_format_info["regex"]
+    file_format_info["parser"] = current_format_info["parser"]
+    file_format_info["sample"] = current_format_info["sample"]
+
+    # if both start and end are provied, we assume the file order
+    # is the same as start -> end
+    if end and dtcmp(start, end, param_format_info, "<"):
+        file_format_info["order"] = "ascending"
+        return file_format_info
+    elif end and dtcmp(start, end, param_format_info, ">"):
+        file_format_info["order"] = "descending"
+        return file_format_info
     elif end and start == end:
         return None
 
-    # sample the file
-    original_seek_pos = f.tell()
+    # sample the file to determine file order
     try:
         MAX_READLINE_NUM  = 1000
         first_datetime    = None
@@ -684,7 +945,7 @@ def detect_file_order(f, start, end, regex_format_info):
             if not line:
                 return None
 
-            match = regex_format_info["parser"].search(line)
+            match = file_format_info["parser"].search(line)
             if match:
                 first_datetime = match.group(0)
                 break
@@ -711,7 +972,7 @@ def detect_file_order(f, start, end, regex_format_info):
 
             # no need to judge if reaches eof, which is impossible
 
-            match = regex_format_info["parser"].search(line)
+            match = file_format_info["parser"].search(line)
             if match:
                 second_datetime = match.group(0)
                 break
@@ -719,12 +980,12 @@ def detect_file_order(f, start, end, regex_format_info):
             return None
         
         # compare first_datetime and second_datetime
-        if dtcmp(first_datetime, second_datetime, regex_format_info, "<"):
-            file_order_info["order"] = "ascending"
-            return file_order_info
-        elif dtcmp(first_datetime, second_datetime, regex_format_info, ">"):
-            file_order_info["order"] = "descending"
-            return file_order_info
+        if dtcmp(first_datetime, second_datetime, file_format_info, "<"):
+            file_format_info["order"] = "ascending"
+            return file_format_info
+        elif dtcmp(first_datetime, second_datetime, file_format_info, ">"):
+            file_format_info["order"] = "descending"
+            return file_format_info
         else:
             return None
     except Exception as ex:
@@ -740,11 +1001,8 @@ def handle_read(cmd_namespace):
     start         = getattr(cmd_namespace, "start")
     end           = getattr(cmd_namespace, "end")
 
-    regex_format_info = detect_format(
-            start, 
-            end, 
-            getattr(cmd_namespace, "regex_format"))
-    if not regex_format_info:
+    param_format_info = detect_datetime_format(start)
+    if not param_format_info:
         return 1
 
     for filepath in filepath_list:
@@ -764,13 +1022,13 @@ def handle_read(cmd_namespace):
             # detect order of lines, then select a compare function
             # this is necessary because datetime in files may be in 
             # ascending or descending order
-            file_order_info = detect_file_order(f, start, end, 
-                    regex_format_info)
-            if not file_order_info:
+            file_format_info = detect_file_format(
+                    f, start, end, param_format_info)
+            if not file_format_info:
                 sys.stderr.write(
                         color(
-                            "Error: can not detect datetime order in file " \
-                                "[{}].\n\n".format(filepath), 
+                            "Error: can not detect datetime format/order in " \
+                                "file [{}].\n\n".format(filepath), 
                             cl = "red"))
                 continue
 
@@ -783,8 +1041,8 @@ def handle_read(cmd_namespace):
             start_read_pos = binary_seek_pos(
                     f, start_pos, end_pos,
                     start,
-                    regex_format_info,
-                    file_order_info)
+                    param_format_info,
+                    file_format_info)
             if start_read_pos is None:
                 sys.stderr.write(
                         color(
@@ -799,8 +1057,8 @@ def handle_read(cmd_namespace):
                 end_read_pos = binary_seek_pos(
                         f, start_read_pos, end_pos,
                         end,
-                        regex_format_info,
-                        file_order_info)
+                        param_format_info,
+                        file_format_info)
                 if end_read_pos is None:
                     sys.stderr.write(
                             color(
@@ -860,14 +1118,12 @@ def main():
     try:
         # parse command line options
         parser = argparse.ArgumentParser(
-                description = "timecat command line tool uses " \
-                    "binary search on seekable log files to " \
-                    "directly locate positions between start " \
-                    "and end datetime, saving huge amounts of disk " \
-                    "I/Os, with high fault tolerance." \
-                    "Usage: " \
-                    "timecat -s '2016-01-02 20:13:14' -e '2016-01-02 20:14:13' " \
-                        "LOGFILE1.log LOGFILE2.log ...")
+                description = "Usage: " \
+                    "timecat -s '2016-01-02 20:13:14' -e '2016-01-02 20:14:13'" \
+                        " LOGFILE1.log LOGFILE2.log ... " \
+                        "-s and -e params can be in any datetime format, " \
+                        "it is not necessary to be consistent with " \
+                        "datetime format in file.")
         init_parser(parser)
         cmd_namespace = parser.parse_args()
 

@@ -3,16 +3,16 @@
 
 from include import *
 from timecat import binary_seek_pos
-from timecat import detect_format
-from timecat import detect_file_order
+from timecat import detect_datetime_format
+from timecat import detect_file_format
 
 dataset_index = 0
 def do_binary_seek_pos(f, st, ed, cmp_pattern, regex_pattern):
     global dataset_index
     dataset_index += 1
 
-    regex_format_info = detect_format(cmp_pattern, None, None)
-    file_order_info   = detect_file_order(f, cmp_pattern, None, 
+    regex_format_info = detect_datetime_format(cmp_pattern, None)
+    file_order_info   = detect_file_format(f, cmp_pattern, None, 
             regex_format_info)
 
     print("\ndataset[{}]".format(dataset_index))
