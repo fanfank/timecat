@@ -22,6 +22,7 @@ import time
 import traceback
 import sys
 
+SLEEP_DURATION  = 0.001 # 1ms
 MAX_LINE_LENGTH = 1024 * 1024 * 128 # 128MB
 
 enable_color   = False
@@ -181,6 +182,12 @@ def init_parser(target_parser):
     #            "timecat does not recognize this datetime format, " \
     #            "then I can specify " \
     #            "\"-r '\d{4}:\d{2}:\d{2}-\d{2}-\d{2}-\d{2}'\".")
+    target_parser.add_argument(
+            "--lpms", dest="lpms",
+            type=int, default=-1,
+            help="Reading speed control, "\
+                "after how many lines read should the program " \
+                "sleep for 1ms, default to -1, meaning no limit.")
     target_parser.add_argument(
             "-v", "--verbose", dest = "enable_verbose",
             action = "store_true",
@@ -997,7 +1004,10 @@ def handle_read(cmd_namespace):
     """
     Authors: xuruiqi
     """
+    global SLEEP_DURATION
+
     filepath_list = getattr(cmd_namespace, "file")
+    lpms          = getattr(cmd_namespace, "lpms")
     start         = getattr(cmd_namespace, "start")
     end           = getattr(cmd_namespace, "end")
 
@@ -1083,6 +1093,7 @@ def handle_read(cmd_namespace):
                             "start read pos:[{}], end read pos:[{}].\n".format(
                                 start_read_pos, 
                                 end_read_pos)))
+                sys.stdout.write(color("lpms:[{}]\n".format(lpms)))
                 sys.stdout.write(color("---------------\n"))
 
             # start reading
@@ -1095,7 +1106,12 @@ def handle_read(cmd_namespace):
 
                 sys.stdout.write(line)
 
+                # reading speed control
                 line_count += 1
+                if lpms > 0 and \
+                        line_count >= lpms:
+                    line_count = 0
+                    time.sleep(SLEEP_DURATION)
 
             if enable_verbose:
                 sys.stdout.write(color("---------------\n"))
