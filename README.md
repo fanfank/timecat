@@ -21,7 +21,13 @@
 使用了`timecat`，你可以这样做：    
 <pre>    timecat -s 'Apr  3 10:09:08' -e 'Apr  4 06:05:04' A.log > timecat.out</pre>      
 这样，`timecat.out`保存的就是你想要的数据，定位速度之快超乎你想象。    
-如果你在生产环境中需要搜索海量的日志，这个工具一定是你的得力助手。
+如果你在生产环境中需要搜索海量的日志，这个工具一定是你的得力助手。   
+    
+指定`-s`与`-e`时日期时间格式不需要与目标文件中的日期时间格式保持一致，`timecat`会尝试自动转换并与文件中的格式匹配。    
+但是你需要使`-s`与`-e`的日期时间格式是一致的。    
+例如下面两个命令的效果是一样的：      
+1. `timecat -s '2016/Jan/01 06:07:08' -e '2016/Jan/01 09:10:11' XXX.log`     
+2. `timecat -s '20160101060708' -e '20160101091011' XXX.log`      
 
 ###English Description    
 Imagine that given a log file `A.log` with its size reaches to <b>28G</b><br />    
@@ -32,3 +38,9 @@ With `timecat`, you can do it this way:
 <pre>    timecat -s 'Apr  3 10:09:08' -e 'Apr  4 06:05:04' A.log > timecat.out</pre>    
 After this, `timecat.out` stores what you want, at an amazing searching speed.      
 When you have to search huge amounts of log files in production environment, this helps alot, saving huge amounts of disk I/Os, more importantly, time.    
+
+The datetime format of `-s` and `-e` options need not to be consisdent with the datetime format of the target file, because `timecat` will detect and convert datetime format automatically.      
+But you should at least guarantee that the datetime formats of `-s` and `-e` are the same.    
+The following two commands are essentially the same:      
+1. `timecat -s '2016/Jan/01 06:07:08' -e '2016/Jan/01 09:10:11' XXX.log`     
+2. `timecat -s '20160101060708' -e '20160101091011' XXX.log`      
