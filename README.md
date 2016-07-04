@@ -1,6 +1,7 @@
 # timecat
 <b>强大的日志搜索辅助工具 - A powerful tool for search in log files.</b>    
 环境要求/requirements：Python2.7.x    
+Origin：<a href="http://blog.reetsee.com/archives/502">http://blog.reetsee.com/archives/502</a>    
 
 ## 安装 - Installation    
 两种方式 - There are two ways to get timecat.    
