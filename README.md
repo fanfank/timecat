@@ -32,7 +32,7 @@ Online Demo：<a href="http://aap.reetsee.com/page/timecat" target="_blank">http
 2. `timecat -s '20160101060708' -e '20160101091011' XXX.log`      
 
 ###English Description    
-Imagine that given a log file `A.log` with its size reaches to <b>28G</b><br />    
+Imagine that given a log file `A.log` with its size up to <b>28G</b><br />    
 The log starts from `Jan  1 20:13:14`, ends with `Dec 31 20:14:13`<br />    
 Now you are required to output all the lines between April 3rd 10:09:08 and April 4th 06:05:04<br />    
 What will you do? Use awk? Use grep? Or sed?<br />    
