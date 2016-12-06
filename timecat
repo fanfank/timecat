@@ -1016,111 +1016,114 @@ def handle_read(cmd_namespace):
         return 1
 
     for filepath in filepath_list:
-        if not os.path.isfile(filepath):
-            sys.stderr.write(
-                    color(
-                        "Error: path [{}] does not exist.\n\n".format(filepath),
-                        cl = "red"))
-            continue
-
-        global binary_loop_num
-        global scan_line_num
-        binary_loop_num = 0
-        scan_line_num   = 0
-
-        with open(filepath, "r") as f:
-            # detect order of lines, then select a compare function
-            # this is necessary because datetime in files may be in 
-            # ascending or descending order
-            file_format_info = detect_file_format(
-                    f, start, end, param_format_info)
-            if not file_format_info:
+        try:
+            if not os.path.isfile(filepath):
                 sys.stderr.write(
                         color(
-                            "Error: can not detect datetime format/order in " \
-                                "file [{}].\n\n".format(filepath), 
+                            "Error: path [{}] does not exist.\n\n".format(filepath),
                             cl = "red"))
                 continue
 
-            # get current file size
-            start_pos = 0
-            f.seek(0, os.SEEK_END)
-            end_pos = f.tell()
+            global binary_loop_num
+            global scan_line_num
+            binary_loop_num = 0
+            scan_line_num   = 0
 
-            # get start read position of the file
-            start_read_pos = binary_seek_pos(
-                    f, start_pos, end_pos,
-                    start,
-                    param_format_info,
-                    file_format_info)
-            if start_read_pos is None:
-                sys.stderr.write(
-                        color(
-                            "Error: no matching start line for reading.\n\n",
-                            cl = "red"))
-                continue
-
-            # get end read position of the file
-            if not end:
-                end_read_pos = end_pos
-            else:
-                end_read_pos = binary_seek_pos(
-                        f, start_read_pos, end_pos,
-                        end,
-                        param_format_info,
-                        file_format_info)
-                if end_read_pos is None:
+            with open(filepath, "r") as f:
+                # detect order of lines, then select a compare function
+                # this is necessary because datetime in files may be in 
+                # ascending or descending order
+                file_format_info = detect_file_format(
+                        f, start, end, param_format_info)
+                if not file_format_info:
                     sys.stderr.write(
                             color(
-                                "Error: no matching end line for reading." \
-                                    "\n\n",
+                                "Error: can not detect datetime format/order in " \
+                                    "file [{}].\n\n".format(filepath), 
                                 cl = "red"))
                     continue
-                
-            # print verbose message
-            global enable_verbose
-            if enable_verbose:
-                sys.stdout.write(
-                        color(
-                            "[{}] after {} binary search loop, " \
-                                "and scaning {} lines, start and end " \
-                                "positions located\n".format(
-                                    filepath,
-                                    binary_loop_num,
-                                    scan_line_num)))
-                sys.stdout.write(
-                        color(
-                            "start read pos:[{}], end read pos:[{}].\n".format(
-                                start_read_pos, 
+
+                # get current file size
+                start_pos = 0
+                f.seek(0, os.SEEK_END)
+                end_pos = f.tell()
+
+                # get start read position of the file
+                start_read_pos = binary_seek_pos(
+                        f, start_pos, end_pos,
+                        start,
+                        param_format_info,
+                        file_format_info)
+                if start_read_pos is None:
+                    sys.stderr.write(
+                            color(
+                                "Error: no matching start line for reading.\n\n",
+                                cl = "red"))
+                    continue
+
+                # get end read position of the file
+                if not end:
+                    end_read_pos = end_pos
+                else:
+                    end_read_pos = binary_seek_pos(
+                            f, start_read_pos, end_pos,
+                            end,
+                            param_format_info,
+                            file_format_info)
+                    if end_read_pos is None:
+                        sys.stderr.write(
+                                color(
+                                    "Error: no matching end line for reading." \
+                                        "\n\n",
+                                    cl = "red"))
+                        continue
+                    
+                # print verbose message
+                global enable_verbose
+                if enable_verbose:
+                    sys.stdout.write(
+                            color(
+                                "[{}] after {} binary search loop, " \
+                                    "and scaning {} lines, start and end " \
+                                    "positions located\n".format(
+                                        filepath,
+                                        binary_loop_num,
+                                        scan_line_num)))
+                    sys.stdout.write(
+                            color(
+                                "start read pos:[{}], end read pos:[{}].\n".format(
+                                    start_read_pos, 
+                                    end_read_pos)))
+                    sys.stdout.write(color("lpms:[{}]\n".format(lpms)))
+                    sys.stdout.write(color("---------------\n"))
+
+                # start reading
+                f.seek(start_read_pos)
+                line_count = 0
+                while f.tell() < end_read_pos:
+                    line = f.readline()
+                    if f.tell() > end_read_pos:
+                        break
+
+                    sys.stdout.write(line)
+
+                    # reading speed control
+                    line_count += 1
+                    if lpms > 0 and \
+                            line_count >= lpms:
+                        line_count = 0
+                        time.sleep(SLEEP_DURATION)
+
+                if enable_verbose:
+                    sys.stdout.write(color("---------------\n"))
+                    sys.stdout.write(color("[{}] finish read. " \
+                            "current f.tell() value:[{}], " \
+                            "end read pos:[{}]. exit.\n\n".format(
+                                filepath,
+                                f.tell(), 
                                 end_read_pos)))
-                sys.stdout.write(color("lpms:[{}]\n".format(lpms)))
-                sys.stdout.write(color("---------------\n"))
-
-            # start reading
-            f.seek(start_read_pos)
-            line_count = 0
-            while f.tell() < end_read_pos:
-                line = f.readline()
-                if f.tell() > end_read_pos:
-                    break
-
-                sys.stdout.write(line)
-
-                # reading speed control
-                line_count += 1
-                if lpms > 0 and \
-                        line_count >= lpms:
-                    line_count = 0
-                    time.sleep(SLEEP_DURATION)
-
-            if enable_verbose:
-                sys.stdout.write(color("---------------\n"))
-                sys.stdout.write(color("[{}] finish read. " \
-                        "current f.tell() value:[{}], " \
-                        "end read pos:[{}]. exit.\n\n".format(
-                            filepath,
-                            f.tell(), 
-                            end_read_pos)))
+        except Exception as ex:
+            sys.stderr.write(color("Exception in file [%s]: %r\n" % (filepath, ex), "red"))
 
     return 0
 
