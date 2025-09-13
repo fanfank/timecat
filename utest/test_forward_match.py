@@ -1,4 +1,13 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from __future__ import division
+
+# Python 2/3 compatibility
+try:
+    xrange
+except NameError:
+    # Python 3
+    xrange = range
 # -*- coding: utf-8 -*-
 
 from include import *
@@ -27,12 +36,13 @@ def do_readline(f, readline_num):
 
 if __name__ == "__main__":
     testlog = "test.log"
-    regprog = re.compile("\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}")
+    regprog = re.compile(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}")
 
     #1 匹配 第4行
     with open(testlog, "r") as f:
-        f.seek(-5, os.SEEK_END)
-        ed = f.tell()
+        f.seek(0, os.SEEK_END)
+        current_pos = f.tell()
+        ed = current_pos - 5
         f.seek(0)
         st = f.tell()
         do_match(f, st, ed, regprog)

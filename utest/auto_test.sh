@@ -1,9 +1,9 @@
 #!/bin/bash
-PY_FILES=`find . -name '*.py'`
 
-for i in ${PY_FILES[@]}
+find . -name '*.py' | while read i
 do
-    name=${i:2:-3}
+    name="${i:2}"
+    name="${name%.py}"
     ans_name="$name".ans
     if [ -f $ans_name ]; then
         echo "----- Job: $name -----"

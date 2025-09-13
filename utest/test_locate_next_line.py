@@ -1,4 +1,13 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from __future__ import division
+
+# Python 2/3 compatibility
+try:
+    xrange
+except NameError:
+    # Python 3
+    xrange = range
 # -*- coding: utf-8 -*-
 
 from include import *
@@ -35,13 +44,14 @@ if __name__ == "__main__":
         f.read(5)
         st = f.tell()
         f.readline()
-        f.seek(-3, os.SEEK_CUR)
-        ed = f.tell()
+        current_pos = f.tell()
+        ed = current_pos - 3
         judge(f, st, ed)
 
         #4 打印最后一行的倒数5个字符，eof
-        f.seek(-5, os.SEEK_END)
-        st = f.tell()
-        ed = f.tell()
+        f.seek(0, os.SEEK_END)
+        current_pos = f.tell()
+        st = current_pos - 5
+        ed = st
         judge(f, st, ed)
     

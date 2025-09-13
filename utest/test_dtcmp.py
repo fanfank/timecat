@@ -1,5 +1,13 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import division
+
+# Python 2/3 compatibility
+try:
+    xrange
+except NameError:
+    # Python 3
+    xrange = range
 
 from include import *
 from timecat import detect_datetime_format

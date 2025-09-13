@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf8 -*-
 """
 @author xuruiqi(fanfank@github.com)
@@ -11,7 +11,9 @@
         the start position and end position, then
         output content between the target positions.
 """
-__version__ = "2.0.0"
+from __future__ import division
+
+__version__ = "2.1.0"
 
 import argparse
 import copy
@@ -20,6 +22,16 @@ import os
 import re
 import time
 import traceback
+import sys
+
+# Python 2/3 compatibility
+try:
+    xrange
+except NameError:
+    # Python 3
+    xrange = range
+
+# Python 2/3 compatibility
 import sys
 
 SLEEP_DURATION  = 0.001 # 1ms
@@ -36,53 +48,53 @@ DATETIME_FORMAT_LIST = [
     # tag the format with YEAR, MONTH, DAY ...
     {
         "desc": "e.g. 2016-01-02 20:13:14.666",
-        "regex": "(?P<YEAR>\d{4})\D(?P<MONTH>\d{2})\D(?P<DAY>\d{2})\D(?P<HOUR>\d{2})\D(?P<MINUTE>\d{2})\D(?P<SECOND>\d{2})\.(?P<MICROSECOND>\d{1,3})",
+        "regex": r"(?P<YEAR>\d{4})\D(?P<MONTH>\d{2})\D(?P<DAY>\d{2})\D(?P<HOUR>\d{2})\D(?P<MINUTE>\d{2})\D(?P<SECOND>\d{2})\.(?P<MICROSECOND>\d{1,3})",
         "direct_compare": True,
     },
     {
         "desc": "e.g. 2016-01-02 20:13:14",
-        "regex": "(?P<YEAR>\d{4})\D(?P<MONTH>\d{2})\D(?P<DAY>\d{2})\D(?P<HOUR>\d{2})\D(?P<MINUTE>\d{2})\D(?P<SECOND>\d{2})",
+        "regex": r"(?P<YEAR>\d{4})\D(?P<MONTH>\d{2})\D(?P<DAY>\d{2})\D(?P<HOUR>\d{2})\D(?P<MINUTE>\d{2})\D(?P<SECOND>\d{2})",
         "direct_compare": True,
     },
     {
         "desc" : "syslog. e.g. Jan  2 20:13:14",
-        "regex": "(?P<MONTH>[a-zA-Z]{3})\D(?P<DAY>[ \d]{1}\d{1})\D(?P<HOUR>\d{2})\D(?P<MINUTE>\d{2})\D(?P<SECOND>\d{2})",
+        "regex": r"(?P<MONTH>[a-zA-Z]{3})\D(?P<DAY>[ \d]{1}\d{1})\D(?P<HOUR>\d{2})\D(?P<MINUTE>\d{2})\D(?P<SECOND>\d{2})",
         "direct_compare": False,
     },
     {
         "desc" : "e.g. 2016/Jan/02 20:13:14.666",
-        "regex": "(?P<DAY>\d{2})\D(?P<MONTH>[a-zA-Z]{3})\D(?P<YEAR>\d{4})\D(?P<HOUR>\d{2})\D(?P<MINUTE>\d{2})\D(?P<SECOND>\d{2})\.(?P<MICROSECOND>\d{1,3})",
+        "regex": r"(?P<DAY>\d{2})\D(?P<MONTH>[a-zA-Z]{3})\D(?P<YEAR>\d{4})\D(?P<HOUR>\d{2})\D(?P<MINUTE>\d{2})\D(?P<SECOND>\d{2})\.(?P<MICROSECOND>\d{1,3})",
         "direct_compare": False,
     },
     {
         "desc" : "e.g. 02-Jan-2016 20:13:14",
-        "regex": "(?P<DAY>\d{2})\D(?P<MONTH>[a-zA-Z]{3})\D(?P<YEAR>\d{4})\D(?P<HOUR>\d{2})\D(?P<MINUTE>\d{2})\D(?P<SECOND>\d{2})",
+        "regex": r"(?P<DAY>\d{2})\D(?P<MONTH>[a-zA-Z]{3})\D(?P<YEAR>\d{4})\D(?P<HOUR>\d{2})\D(?P<MINUTE>\d{2})\D(?P<SECOND>\d{2})",
         "direct_compare": False,
     },
     {
         "desc" : "datetime without seperator. e.g. 20160102201314",
         #"regex": "\d{14}",
-        "regex": "(?P<YEAR>\d{4})(?P<MONTH>\d{2})(?P<DAY>\d{2})(?P<HOUR>\d{2})(?P<MINUTE>\d{2})(?P<SECOND>\d{2})",
+        "regex": r"(?P<YEAR>\d{4})(?P<MONTH>\d{2})(?P<DAY>\d{2})(?P<HOUR>\d{2})(?P<MINUTE>\d{2})(?P<SECOND>\d{2})",
         "direct_compare": True,
     },
     {
         "desc" : "timestamp in microseconds",
-        "regex": "(?P<MICROTS>\d{13})",
+        "regex": r"(?P<MICROTS>\d{13})",
         "direct_compare": True,
     },
     {
         "desc" : "timestamp in seconds",
-        "regex": "(?P<TS>\d{10})",
+        "regex": r"(?P<TS>\d{10})",
         "direct_compare": True,
     },
     {
         "desc" : "only hour, minute and seconds",
-        "regex": "(?P<HOUR>\d{2}):(?P<MINUTE>\d{2}):(?P<SECOND>\d{2})",
+        "regex": r"(?P<HOUR>\d{2}):(?P<MINUTE>\d{2}):(?P<SECOND>\d{2})",
         "direct_compare": True,
     },
     {
         "desc" : "only hour and minutes",
-        "regex": "(?P<HOUR>\d{2}):(?P<MINUTE>\d{2})",
+        "regex": r"(?P<HOUR>\d{2}):(?P<MINUTE>\d{2})",
         "direct_compare": True,
     },
 ]
@@ -181,7 +193,7 @@ def init_parser(target_parser):
     #            "e.g. I have format \"2016:01:01-20-13-14\", and " \
     #            "timecat does not recognize this datetime format, " \
     #            "then I can specify " \
-    #            "\"-r '\d{4}:\d{2}:\d{2}-\d{2}-\d{2}-\d{2}'\".")
+    #            "\"-r r'\d{4}:\d{2}:\d{2}-\d{2}-\d{2}-\d{2}'\".")
     target_parser.add_argument(
             "--lpms", dest="lpms",
             type=int, default=-1,
@@ -435,7 +447,7 @@ def at_line_head(f):
     if f.tell() == 0:
         return True
     else:
-        f.seek(f.tell() - 1)
+        f.seek(f.tell() - 1, os.SEEK_SET)
         return f.read(1) == "\n"
 
 def locate_current_line(f, ed, st_bound,
@@ -479,13 +491,13 @@ def locate_current_line(f, ed, st_bound,
         # check if the first character of this "line" is really
         # at the head of line
         if len(lines) == 1:
-            f.seek(0 - len(lines[-1]), os.SEEK_CUR)
+            f.seek(f.tell() - len(lines[-1]), os.SEEK_SET)
             if at_line_head(f):
                 return f.tell()
         # multi lines read. directly set the position to the
         # head of last line
         else:
-            f.seek(0 - len(lines[-1]), os.SEEK_CUR)
+            f.seek(f.tell() - len(lines[-1]), os.SEEK_SET)
             return f.tell()
 
         # not done, continue to look for the head of a line
@@ -568,7 +580,7 @@ def forward_match(f, st, ed, regprog, ed_inclusive = True,
 
         match = regprog.search(line)
         if match:
-            f.seek(0 - len(line), os.SEEK_CUR)
+            f.seek(f.tell() - len(line), os.SEEK_SET)
             return match, line, f.tell()
 
     f.seek(ed)
@@ -686,10 +698,7 @@ def backward_match(f, ed, st, regprog, backward_step_hint = 1024 * 4):
             match = regprog.search(line)
             if match:
                 # locate f's reading pointer
-                f.seek(
-                    total_lines_length \
-                    - cur_lines_length \
-                    + new_pos)
+                f.seek(new_pos + total_lines_length - cur_lines_length, os.SEEK_SET)
                 return match, line, f.tell()
 
         # update old_pos
@@ -738,7 +747,7 @@ def binary_seek_pos(f, st, ed, cmp_pattern, param_format_info,
     while st < ed:
         binary_loop_num += 1
 
-        mid = st + (ed - st) / 2
+        mid = st + (ed - st) // 2
 
         # read until regprog matches the line
         f.seek(mid)

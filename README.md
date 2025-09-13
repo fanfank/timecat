@@ -1,6 +1,12 @@
 # timecat
 <b>强大的日志搜索辅助工具 - A powerful tool for search in log files.</b>    
-环境要求/requirements：Python2.7.x    
+
+## 环境要求 - Requirements
+- **Python 2.7.x** ✅
+- **Python 3.4+** ✅
+
+**兼容性说明**: timecat 现已支持 Python 2.7 和 Python 3.x 双版本
+
 Origin：<a href="http://blog.reetsee.com/archives/502" target="_blank">http://blog.reetsee.com/archives/502</a>    
 Online Demo：<a href="http://aap.reetsee.com/page/timecat" target="_blank">http://aap.reetsee.com/page/timecat</a>      
 
@@ -32,6 +38,9 @@ Online Demo：<a href="http://aap.reetsee.com/page/timecat" target="_blank">http
 2. `timecat -s '20160101060708' -e '20160101091011' XXX.log`      
 
 ### English Description    
+
+**Cross-Platform Compatibility**: timecat now fully supports both Python 2.7 and Python 3.x (3.4+)
+
 Imagine that given a log file `A.log` with its size up to <b>28G</b><br />    
 The log starts from `Jan  1 20:13:14`, ends with `Dec 31 20:14:13`<br />    
 Now you are required to output all the lines between April 3rd 10:09:08 and April 4th 06:05:04<br />    

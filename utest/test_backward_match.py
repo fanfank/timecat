@@ -1,4 +1,13 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from __future__ import division
+
+# Python 2/3 compatibility
+try:
+    xrange
+except NameError:
+    # Python 3
+    xrange = range
 # -*- coding: utf-8 -*-
 
 from include import *
@@ -28,7 +37,7 @@ def do_readline(f, readline_num):
 
 if __name__ == "__main__":
     testlog = "test.log"
-    regprog = re.compile("\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}")
+    regprog = re.compile(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}")
 
     #1 返回第8行
     with open(testlog, "r") as f:

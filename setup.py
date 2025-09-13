@@ -22,7 +22,7 @@ long_description = \
 
 setup(
     name         = "timecat",        
-    version      = "1.0.2",
+    version      = "2.1.0",
     description  = "a powerful tool for searching log files " \
             "with binary search algorithm",
     long_description = long_description,
@@ -46,9 +46,16 @@ setup(
         "License :: OSI Approved :: MIT License",
 
         "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.6",
         "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 2 :: Only",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
     ],
 
     scripts = ["timecat"],
@@ -59,7 +66,7 @@ setup(
 
     install_requires = [],
 
-    extra_require = {},
+    extras_require = {},
 
     data_files = [],
 

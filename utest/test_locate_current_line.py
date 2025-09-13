@@ -1,4 +1,13 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from __future__ import division
+
+# Python 2/3 compatibility
+try:
+    xrange
+except NameError:
+    # Python 3
+    xrange = range
 # -*- coding: utf-8 -*-
 
 from include import *
@@ -31,8 +40,9 @@ if __name__ == "__main__":
         #2 打印最后1行
         f.seek(0)
         st = f.tell()
-        f.seek(-5, os.SEEK_END)
-        ed = f.tell()
+        f.seek(0, os.SEEK_END)
+        current_pos = f.tell()
+        ed = current_pos - 5
         judge(f, st, ed)
 
         #3 打印第4行，从第4个字符开始打印
@@ -41,8 +51,8 @@ if __name__ == "__main__":
         f.read(3)
         st = f.tell()
         f.readline()
-        f.seek(-5, os.SEEK_CUR)
-        ed = f.tell()
+        current_pos = f.tell()
+        ed = current_pos - 5
         judge(f, st, ed)
 
         #4 打印第2行

@@ -1,2 +1,20 @@
 *.pyc
 *.pyo
+*.local
+
+# 构建和发布相关文件
+build/
+dist/
+*.egg-info/
+__pycache__/
+
+# IDE 和编辑器文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 系统文件
+.DS_Store
+Thumbs.db

@@ -1,10 +1,27 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import division
+
+# Python 2/3 compatibility
+try:
+    xrange
+except NameError:
+    # Python 3
+    xrange = range
 
 from include import *
 from timecat import detect_datetime_format
 
 case_num = 0
+def sorted_dict_repr(d):
+    """返回字典的排序后的字符串表示，确保输出一致"""
+    if d is None:
+        return 'None'
+    if isinstance(d, dict):
+        items = sorted(d.items())
+        return '{' + ', '.join("'{}': {}".format(k, repr(v)) for k, v in items) + '}'
+    return repr(d)
+
 def check(st, regex_format = None):
     global case_num
     case_num += 1
@@ -12,7 +29,7 @@ def check(st, regex_format = None):
     regex_format_info = detect_datetime_format(st, regex_format)
     if regex_format_info:
         regex_format_info["parser"] = "parser obj" # always change, it's an obj
-    print(repr(regex_format_info))
+    print(sorted_dict_repr(regex_format_info))
     print("")
 
 if __name__ == "__main__":
