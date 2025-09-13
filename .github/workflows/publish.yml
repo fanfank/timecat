@@ -66,6 +66,9 @@ jobs:
     runs-on: ubuntu-latest
     # 使用 environment 提供额外的安全保护
     environment: release
+    permissions:
+      id-token: write  # 用于 Trusted Publisher 的 OIDC token
+      contents: read   # 用于读取仓库内容
     
     steps:
     - name: Download artifacts
